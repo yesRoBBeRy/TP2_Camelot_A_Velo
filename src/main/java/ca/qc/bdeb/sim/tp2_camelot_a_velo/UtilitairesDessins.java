@@ -1,3 +1,5 @@
+package ca.qc.bdeb.sim.tp2_camelot_a_velo;
+
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
