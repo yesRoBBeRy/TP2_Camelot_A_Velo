@@ -5,16 +5,26 @@ import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 
 
 public class Journal extends ObjetDuJeu {
     protected ImageView img;
     protected double masse;
+    protected Point2D qtDeMouvementZ;
+    protected Point2D qtDeMouvementX;
+    protected boolean visible;
+    protected boolean lancer;
+
 
     public Journal(Point2D velocite, Point2D position, double masse) {
         super(velocite, position);
         this.img = new ImageView(new Image("journal.png"));
         this.masse = masse;
+        this.qtDeMouvementZ = new Point2D(900,-900); //init Z
+        this.qtDeMouvementX = new Point2D(150,-1100); //init X
+
+
     }
 
     @Override
