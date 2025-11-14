@@ -5,8 +5,11 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Camelot extends ObjetDuJeu {
-    protected int nbJournal;
+    private LinkedList<Journal> journaux;
     private final Image camelot1;
     private final Image camelot2;
     private int dernierTemps = 0;
@@ -87,5 +90,12 @@ public class Camelot extends ObjetDuJeu {
         );
         System.out.println(position);
 
+    }
+
+    public void addJournaux(Journal journal) {
+        this.journaux.push(journal);
+    }
+    public void removeJournal() {
+        this.journaux.pop();
     }
 }

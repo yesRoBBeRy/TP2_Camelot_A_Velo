@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class JeuCamelot extends Application {
     public static double tempsTotal;
@@ -74,15 +75,25 @@ public class JeuCamelot extends Application {
         Canvas canvas = new Canvas(largeur, hauteur);
         root.getChildren().add(canvas);
 
+        Random rand = new Random();
+
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         List<ObjetDuJeu> objetsDuJeu = new ArrayList<>();
-        objetsDuJeu.add(new Camelot(new Point2D(100, 400), new Point2D(.2 * largeur, hauteur - 144)));
+        Camelot camelot = new Camelot(new Point2D(100, 400), new Point2D(.2 * largeur, hauteur - 144));
+        objetsDuJeu.add(camelot);
+        objetsDuJeu.add(new Journal(new Point2D(0, 0), new Point2D(0, 0), rand.nextDouble(1, 2)));
 
+        List<Journal> journaux = new ArrayList<>();
         for (var objet : objetsDuJeu) {
             ImageView imageView = objet.getImage();
             root.getChildren().add(imageView);
+            if(objet instanceof Journal) {
+                camelot.addJournaux((Journal) objet);
+            }
         }
+
+
 
         AnimationTimer timer = new AnimationTimer() {
             private long dernierTemps = System.nanoTime();

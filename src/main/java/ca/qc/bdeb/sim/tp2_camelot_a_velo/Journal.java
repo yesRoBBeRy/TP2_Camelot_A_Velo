@@ -19,6 +19,34 @@ public class Journal extends ObjetDuJeu {
 
     @Override
     public void draw(GraphicsContext context) {
+        image.setX(position.getX());
+        image.setY(position.getY());
+    }
+    @Override
+    public void updatePhysique(double deltaTemps){
 
+
+        if (Input.isKeyPressed(KeyCode.SHIFT) && ( Input.isKeyPressed(KeyCode.X) || Input.isKeyPressed(KeyCode.Z))) {
+            
+
+        }
+
+        if(deltaTemps < 0.5){
+            lancer = false;
+        }
+
+
+        //module de la velocite maximum
+        double max = 1500;
+        if(velocite.magnitude() > max){
+
+            velocite = velocite.multiply(max / velocite.magnitude());
+        }
+
+    }
+
+
+    public Point2D calculQtDeMouvementZInitial(Point2D velocite, double masse) {
+        return velocite.multiply(masse);
     }
 }
