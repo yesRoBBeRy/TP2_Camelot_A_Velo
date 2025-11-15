@@ -9,12 +9,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Camelot extends ObjetDuJeu {
-    private LinkedList<Journal> journaux;
+    private LinkedList<Journal> journaux = new LinkedList<>();
     private final Image camelot1;
     private final Image camelot2;
     private int dernierTemps = 0;
     private final int vitesseDeBase = 0; // ******remmettre a 400 lors des vrai tests******
     protected boolean toucheLeSol = true;
+    private double dtDernierLancer = 0;
 
     public Camelot(Point2D velocite, Point2D position) {
         super(velocite, position);
@@ -102,4 +103,10 @@ public class Camelot extends ObjetDuJeu {
         }
 
     }
+
+    //if (Input.isKeyPressed(KeyCode.SHIFT) && ( Input.isKeyPressed(KeyCode.X) || Input.isKeyPressed(KeyCode.Z))) {
+    //
+    //
+    //
+    //        }
 }
