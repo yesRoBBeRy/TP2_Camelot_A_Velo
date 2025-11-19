@@ -9,12 +9,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Camelot extends ObjetDuJeu {
-    private LinkedList<Journal> journaux;
+    private LinkedList<Journal> journaux = new LinkedList<>();
     private final Image camelot1;
     private final Image camelot2;
     private int dernierTemps = 0;
-    private final int vitesseDeBase = 0;
+    private final int vitesseDeBase = 0; // ******remmettre a 400 lors des vrai tests******
     protected boolean toucheLeSol = true;
+    private double dtDernierLancer = 0;
 
     public Camelot(Point2D velocite, Point2D position) {
         super(velocite, position);
@@ -45,7 +46,7 @@ public class Camelot extends ObjetDuJeu {
 
     @Override
     public void updatePhysique(double deltaTemps) {
-        //mouvement en X
+        //Déplacement en X
         if (Input.isKeyPressed(KeyCode.LEFT)) {
             acceleration = new Point2D(-300, acceleration.getY()); //gauche
         } else if (Input.isKeyPressed(KeyCode.RIGHT)) {
@@ -65,25 +66,25 @@ public class Camelot extends ObjetDuJeu {
             }
 
         }
-        //mouvement Y
+        //Déplacement en Y
         if ((Input.isKeyPressed(KeyCode.SPACE) || Input.isKeyPressed(KeyCode.UP)) && toucheLeSol) {
             velocite = new Point2D(velocite.getX(), -500); //sauter
             toucheLeSol = false;
             System.out.println("jump");
         }
 
-
+        //Gravite
         if (!toucheLeSol) {
             velocite = new Point2D(velocite.getX(), velocite.getY() + acceleration.getY() * deltaTemps);
         }
-
+        //MAJ
         super.updatePhysique(deltaTemps);
-
+        //Gestion du double saut
         if (position.getY() + camelot1.getHeight() >= JeuCamelot.hauteur) {
             toucheLeSol = true;
             velocite = new Point2D(velocite.getX(), 0);
         }
-
+        //Contrainte rester dans la fenêtre
         position = new Point2D(
                 Math.clamp(position.getX(), 0, JeuCamelot.largeur - camelot1.getWidth()),
                 Math.clamp(position.getY(), 0, JeuCamelot.hauteur - camelot1.getHeight())
@@ -91,11 +92,21 @@ public class Camelot extends ObjetDuJeu {
         System.out.println(position);
 
     }
-
+    //Journaux transporté
     public void addJournaux(Journal journal) {
-        this.journaux.push(journal);
+        journaux.push(journal);
     }
+
     public void removeJournal() {
-        this.journaux.pop();
+        if (!journaux.isEmpty()) {
+            journaux.pop();
+        }
+
     }
+
+    //if (Input.isKeyPressed(KeyCode.SHIFT) && ( Input.isKeyPressed(KeyCode.X) || Input.isKeyPressed(KeyCode.Z))) {
+    //
+    //
+    //
+    //        }
 }
