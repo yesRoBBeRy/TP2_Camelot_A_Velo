@@ -82,18 +82,16 @@ public class JeuCamelot extends Application {
         List<ObjetDuJeu> objetsDuJeu = new ArrayList<>();
         Camelot camelot = new Camelot(new Point2D(100, 400), new Point2D(.2 * largeur, hauteur - 144));
         objetsDuJeu.add(camelot);
-        objetsDuJeu.add(new Journal(new Point2D(0, 0), new Point2D(0, 0), rand.nextDouble(1, 2)));
 
-        List<Journal> journaux = new ArrayList<>();
-        for (var objet : objetsDuJeu) {
-            ImageView imageView = objet.getImage();
-            root.getChildren().add(imageView);
-            if(objet instanceof Journal) {
-                camelot.addJournaux((Journal) objet);
+        double mass = rand.nextDouble(2);
+        for(int i = 0; i < 500; i++){
+            objetsDuJeu.add(new Journal(new Point2D(0, 0), new Point2D(0, 0), mass, camelot));
+        }
+        for(ObjetDuJeu obj : objetsDuJeu){
+            if(obj instanceof Journal){
+                camelot.addJournaux((Journal) obj);
             }
         }
-
-
 
         AnimationTimer timer = new AnimationTimer() {
             private long dernierTemps = System.nanoTime();
@@ -103,10 +101,14 @@ public class JeuCamelot extends Application {
 
                 double deltaTemps = (temps - dernierTemps) * 1e-9;
                 tempsTotal += deltaTemps;
+                gc.setFill(Color.BLACK);
+                gc.fillRect(0, 0, largeur, hauteur);
+                Mur.dessinerMur(gc, camera);
                 for (var objet : objetsDuJeu) {
                     objet.draw(gc);
                     objet.updatePhysique(deltaTemps);
                 }
+                camera.update(deltaTemps, camelot);
                 dernierTemps = temps;
             }
         };

@@ -14,11 +14,11 @@ public class BoiteAuLettre extends ObjetDuJeu{
         this.boiteRouge = new Image("boite-aux-lettres-rouge.png");
         this.boiteVerte = new Image("boite-aux-lettres-verte.png");
         this.boite = new Image("boite-aux-lettres.png");
-        image.setImage(boite);
+        image = boite;
     }
 
     @Override
-    public void draw(GraphicsContext context) {
-
+    public void draw(GraphicsContext context, Camera camera) {
+        position = position.add(camera.getPositionCamera());
     }
 }
