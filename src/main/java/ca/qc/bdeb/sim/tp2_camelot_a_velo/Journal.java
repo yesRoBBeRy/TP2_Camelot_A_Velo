@@ -9,23 +9,28 @@ import javafx.scene.input.KeyCode;
 
 
 public class Journal extends ObjetDuJeu {
-    private final ImageView img;
+    private final Camelot camelot;
     private final double masse;
     private static final Point2D qtDeMouvementZ = new Point2D(900,-900);
     private static final Point2D qtDeMouvementX = new Point2D(150,-1100);
     private boolean dejaLancer = false;
+    private Image img;
 
 
-    public Journal(Point2D velocite, Point2D position, double masse) {
+    public Journal(Point2D velocite, Point2D position, double masse, Camelot camelot) {
         super(velocite, position);
-        this.img = new ImageView(new Image("journal.png"));
         this.masse = masse;
+        this.camelot = camelot;
+        this.img = new Image("journal.png");
+        this.image = img;
     }
 
     @Override
-    public void draw(GraphicsContext context) {
-        image.setX(position.getX());
-        image.setY(position.getY());
+    public void draw(GraphicsContext context, Camera camera) {
+        var coordoEcran = camera.coordoEcran(position);
+        if(image != null) {
+            context.drawImage(image, coordoEcran.getX(), coordoEcran.getY());
+        }
     }
 
     @Override
@@ -34,35 +39,40 @@ public class Journal extends ObjetDuJeu {
         //module de la velocite maximum
         double max = 1500;
         if(velocite.magnitude() > max){
-
             velocite = velocite.multiply(max / velocite.magnitude());
         }
 
+        if(!dejaLancer){
+            position = camelot.getPosition();
+            image = null;
+        } else {
+            image = img;
+
+        }
+
+
     }
 
-    public void actionLancer(boolean z, boolean x, boolean shift){
+    public void actionLancer(boolean z, boolean x){
+        image = img;
         if(dejaLancer){
             return;
         }
 
-        Point2D qtDeMouvement = null;
+        Point2D qtDeMouvement;
 
         if(z){
             qtDeMouvement = qtDeMouvementZ;
-        }
-        if(x){
+        } else if(x){
             qtDeMouvement = qtDeMouvementX;
-        }
+        } else return;
 
-        if(qtDeMouvement == null){
-            return;
-        }
-
-        if (shift){
+        if (Input.isKeyPressed(KeyCode.SHIFT)) {
             qtDeMouvement = qtDeMouvement.multiply(1.5);
         }
 
         //vinitiale = ⃗vcamelot + pinitiale/m
+        velocite = camelot.getVelocite();
         velocite = velocite.add(qtDeMouvement.multiply(1.0/masse));
         dejaLancer = true;
 
@@ -80,7 +90,5 @@ public class Journal extends ObjetDuJeu {
         return velocite.multiply(masse);
     }
 
-    public ImageView getImg() {
-        return img;
-    }
+
 }

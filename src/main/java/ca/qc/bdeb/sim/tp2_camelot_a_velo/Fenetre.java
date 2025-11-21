@@ -13,7 +13,7 @@ public class Fenetre extends ObjetDuJeu{
 
 
     @Override
-    public void draw(GraphicsContext context) {
+    public void draw(GraphicsContext context, Camera camera) {
 
     }
 }

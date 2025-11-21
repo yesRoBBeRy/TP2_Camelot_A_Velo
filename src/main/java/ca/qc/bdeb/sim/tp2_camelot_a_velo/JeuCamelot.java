@@ -24,56 +24,22 @@ public class JeuCamelot extends Application {
     public static double hauteur = 580;
 
     @Override
-    public void start(Stage stage) throws IOException {/*
+    public void start(Stage stage) throws IOException {
 
-        Pane root = new Pane();
-        Scene scene = new Scene(root, largeur, hauteur);
-        root.setStyle("-fx-background-color: #000000;");
-        Canvas canvas = new Canvas(largeur, hauteur);
-        root.getChildren().add(canvas);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        List<ObjetDuJeu> objetsDuJeu = new ArrayList<>();
-        objetsDuJeu.add(new Camelot(new Point2D(100, 400), new Point2D(.2 * largeur, hauteur - 144), new  Point2D(0,0)));
-        for(var objet : objetsDuJeu){
-            ImageView imageView = objet.getImage();
-            root.getChildren().add(imageView);
-        }
-        animer(objetsDuJeu, gc);
-        */
+
         var scene = sceneJeu();
-
         stage.setTitle("Camelot à vélo");
         stage.setScene(scene);
         stage.show();
     }
 
-    /*
-    public void animer(List<ObjetDuJeu> objetsDuJeu,  GraphicsContext gc){
-        AnimationTimer timer = new AnimationTimer() {
-            private long dernierTemps = System.nanoTime();
-
-            @Override
-            public void handle(long temps) {
-
-                double deltaTemps = (temps - dernierTemps) * 1e-9;
-                tempsTotal += deltaTemps;
-                for(var objet : objetsDuJeu){
-                    objet.draw(gc);
-                    objet.updatePhysique(deltaTemps);
-                }
-                dernierTemps = temps;
-            }
-        };
-        timer.start();
-    }
-
-     */
     private Scene sceneJeu() {
         Pane root = new Pane();
         Scene scene = new Scene(root, largeur, hauteur);
         root.setStyle("-fx-background-color: #000000;");
         Canvas canvas = new Canvas(largeur, hauteur);
         root.getChildren().add(canvas);
+        Camera camera = new Camera(new Point2D(0, 0));
 
         Random rand = new Random();
 
@@ -105,7 +71,7 @@ public class JeuCamelot extends Application {
                 gc.fillRect(0, 0, largeur, hauteur);
                 Mur.dessinerMur(gc, camera);
                 for (var objet : objetsDuJeu) {
-                    objet.draw(gc);
+                    objet.draw(gc, camera);
                     objet.updatePhysique(deltaTemps);
                 }
                 camera.update(deltaTemps, camelot);
@@ -125,6 +91,11 @@ public class JeuCamelot extends Application {
         });
 
         return scene;
+    }
+
+    public boolean niveauComplete(Camelot camelot){
+        double positionDeFin = 15600 + 1.5*largeur;
+        return camelot.getPosition().getX() > positionDeFin;
     }
 
     public static void main(String[] args) {

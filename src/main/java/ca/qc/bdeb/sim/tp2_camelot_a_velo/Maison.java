@@ -25,8 +25,8 @@ public class Maison extends ObjetDuJeu{
     }
 
     @Override
-    public void draw(GraphicsContext context) {
-
+    public void draw(GraphicsContext context, Camera camera) {
+        position = position.add(camera.getPositionCamera());
     }
 
 
