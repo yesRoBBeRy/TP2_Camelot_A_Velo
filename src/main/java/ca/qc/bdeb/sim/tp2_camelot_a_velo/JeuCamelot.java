@@ -2,12 +2,10 @@ package ca.qc.bdeb.sim.tp2_camelot_a_velo;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -15,6 +13,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -34,30 +33,64 @@ public class JeuCamelot extends Application {
     }
 
     private Scene sceneJeu() {
+        Random rand = new Random();
+        //positions et adresses
+        int[] positionsPortes = new int[12];
+        int j = 1300;
+        int k = 0;
+        while (j <= 15600) {
+            positionsPortes[k] = j;
+            j += 1300;
+            k++;
+        }
+        int[] adresses = new int[12];
+        adresses[0] = rand.nextInt(100, 950);
+        for (int i = 1; i < adresses.length; i++) {
+            adresses[i] = adresses[i - 1] + 2;
+        }
+        //Structure
         Pane root = new Pane();
         Scene scene = new Scene(root, largeur, hauteur);
         root.setStyle("-fx-background-color: #000000;");
         Canvas canvas = new Canvas(largeur, hauteur);
         root.getChildren().add(canvas);
-        Camera camera = new Camera(new Point2D(0, 0));
-
-        Random rand = new Random();
-
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
+
+        Camera camera = new Camera(Point2D.ZERO);
+
         List<ObjetDuJeu> objetsDuJeu = new ArrayList<>();
+
+        for (int i = 0; i < positionsPortes.length; i++) {
+            objetsDuJeu.add(new Maison(new Point2D(0, 0), new Point2D(0, 0), positionsPortes[i], adresses[i]));
+        }
+
         Camelot camelot = new Camelot(new Point2D(100, 400), new Point2D(.2 * largeur, hauteur - 144));
         objetsDuJeu.add(camelot);
 
-        double mass = rand.nextDouble(2);
-        for(int i = 0; i < 500; i++){
-            objetsDuJeu.add(new Journal(new Point2D(0, 0), new Point2D(0, 0), mass, camelot));
+        double masse = rand.nextDouble(2);
+
+        List<Journal> journaux = new ArrayList<>();
+        for(int i = 0; i < 12; i++){
+            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, camelot);
+            objetsDuJeu.add(journal);
+            camelot.addJournaux(journal);
+            journaux.add(journal);
         }
+        //Liste d'objet susceptibles d'entrer en collision
+        List<Collisions> collisionsStatiques = new ArrayList<>();
+
+        //Ajout des objets qui peuvent entrer en collision sauf les journaux
         for(ObjetDuJeu obj : objetsDuJeu){
-            if(obj instanceof Journal){
-                camelot.addJournaux((Journal) obj);
+            if(obj instanceof Maison) {
+                Fenetre[] fenetre = ((Maison) obj).getFenetres();
+                BoiteAuLettre boite = ((Maison) obj).getBoiteAuLettre();
+
+                collisionsStatiques.addAll(Arrays.asList(fenetre));
+                collisionsStatiques.add(boite);
             }
         }
+
 
         AnimationTimer timer = new AnimationTimer() {
             private long dernierTemps = System.nanoTime();
@@ -73,6 +106,14 @@ public class JeuCamelot extends Application {
                 for (var objet : objetsDuJeu) {
                     objet.draw(gc, camera);
                     objet.updatePhysique(deltaTemps);
+                }
+                //Collisions
+                for(Journal journal : journaux){
+                    for(Collisions collision : collisionsStatiques){
+                        if(journal.collision(collision)){
+                            System.out.println("collision");
+                        }
+                    }
                 }
                 camera.update(deltaTemps, camelot);
                 dernierTemps = temps;

@@ -15,7 +15,6 @@ public class Camera{
     public void update(double deltaTemps, Camelot camelot) {
         double cibleX = camelot.getPosition().getX() - JeuCamelot.largeur * 0.2;
         positionCamera = new Point2D(positionCamera.getX() + (cibleX - positionCamera.getX()),0);
-        System.out.println(positionCamera);
     }
 
     public Point2D coordoEcran(Point2D positionMonde){
