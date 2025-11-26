@@ -8,5 +8,6 @@ public interface Collisions {
     default boolean collision(Collisions autreObj){
         return this.getBounds().intersects(autreObj.getBounds());
     }
+    void actionApresCollision();
 
 }

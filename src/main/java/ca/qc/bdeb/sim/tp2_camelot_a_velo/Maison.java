@@ -24,7 +24,7 @@ public class Maison extends ObjetDuJeu{
         Random rand = new Random();
         this.estAbonne = rand.nextBoolean();
         this.adresse = adresse;
-        this.fenetres = new Fenetre[rand.nextInt(2)];
+        this.fenetres = new Fenetre[rand.nextInt(3)];
         this.image = new Image("porte.png");
         this.position = new Point2D(positionX, JeuCamelot.hauteur - image.getHeight());
         this.boiteAuLettre = new BoiteAuLettre(Point2D.ZERO, new Point2D(this.position.getX() + 200, rand.nextDouble(.2, .7) * JeuCamelot.hauteur));

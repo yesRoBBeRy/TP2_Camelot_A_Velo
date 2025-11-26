@@ -9,11 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Camelot extends ObjetDuJeu {
-    private List<Journal> journaux = new ArrayList<>();
+    private final List<Journal> journaux = new ArrayList<>();
     private final Image camelot1;
     private final Image camelot2;
     private int dernierTemps = 0;
-    private final int vitesseDeBase = 400;
     protected boolean toucheLeSol = true;
     private double dtDernierLancer = 0;
 
@@ -52,6 +51,7 @@ public class Camelot extends ObjetDuJeu {
         } else if (Input.isKeyPressed(KeyCode.RIGHT)) {
             acceleration = new Point2D(300, acceleration.getY()); //droite
         } else {
+            int vitesseDeBase = 400;
             if (Math.abs(velocite.getX()) > vitesseDeBase) {
 
                 // Si la vitesse en X est un minimum élevée, on décélère

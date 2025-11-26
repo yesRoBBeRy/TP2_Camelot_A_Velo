@@ -23,7 +23,7 @@ public class JeuCamelot extends Application {
     public static double hauteur = 580;
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(Stage stage) {
 
 
         var scene = sceneJeu();
@@ -107,15 +107,18 @@ public class JeuCamelot extends Application {
                     objet.draw(gc, camera);
                     objet.updatePhysique(deltaTemps);
                 }
-                //Collisions
+                //Détection de collisions
                 for(Journal journal : journaux){
+                    if(!journal.getPeutCollision()) continue;
+
                     for(Collisions collision : collisionsStatiques){
                         if(journal.collision(collision)){
                             System.out.println("collision");
+                            journal.actionApresCollision();
                         }
                     }
                 }
-                camera.update(deltaTemps, camelot);
+                camera.update(camelot);
                 dernierTemps = temps;
             }
         };

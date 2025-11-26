@@ -37,4 +37,9 @@ public class BoiteAuLettre extends ObjetDuJeu implements Collisions{
     public boolean collision(Collisions autreObj) {
         return Collisions.super.collision(autreObj);
     }
+
+    @Override
+    public void actionApresCollision() {
+
+    }
 }

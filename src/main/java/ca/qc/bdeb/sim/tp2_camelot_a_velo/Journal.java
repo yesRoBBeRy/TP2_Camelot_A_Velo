@@ -15,8 +15,13 @@ public class Journal extends ObjetDuJeu implements Collisions {
     private static final Point2D qtDeMouvementZ = new Point2D(900, -900);
     private static final Point2D qtDeMouvementX = new Point2D(150, -1100);
     private boolean dejaLancer = false;
-    private Image img;
+    private final Image img;
 
+    public boolean getPeutCollision() {
+        return peutCollision;
+    }
+
+    private boolean peutCollision = true;
 
     public Journal(Point2D velocite, Point2D position, double masse, Camelot camelot) {
         super(velocite, position);
@@ -28,7 +33,7 @@ public class Journal extends ObjetDuJeu implements Collisions {
 
     @Override
     public void draw(GraphicsContext context, Camera camera) {
-        if (!dejaLancer) return;
+        if (!dejaLancer || image == null) return;
         var coordoEcran = camera.coordoEcran(position);
         context.drawImage(image, coordoEcran.getX(), coordoEcran.getY());
 
@@ -91,12 +96,22 @@ public class Journal extends ObjetDuJeu implements Collisions {
 
     @Override
     public Rectangle2D getBounds() {
+        if(image == null) return Rectangle2D.EMPTY;
         return new Rectangle2D(position.getX(), position.getY(), image.getWidth(), image.getHeight());
     }
 
     @Override
     public boolean collision(Collisions autreObj) {
+        if(image == null) return false;
         if(!dejaLancer) return false;
         return Collisions.super.collision(autreObj);
+    }
+
+    @Override
+    public void actionApresCollision() {
+        velocite = Point2D.ZERO;
+        acceleration = Point2D.ZERO;
+        image = null;
+        peutCollision = false;
     }
 }
