@@ -11,7 +11,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -91,6 +90,16 @@ public class JeuCamelot extends Application {
             }
         }
 
+        List<ParticuleChargee> particuleChargees = new ArrayList<>();
+        int niveau = 2;
+        int nbParticules = Math.min((niveau - 1) * 30, 400);
+
+        for(int i = 0; i < nbParticules; i++){
+            ParticuleChargee p = new ParticuleChargee(Point2D.ZERO,Point2D.ZERO);
+            particuleChargees.add(p);
+            objetsDuJeu.add(p);
+        }
+
 
         AnimationTimer timer = new AnimationTimer() {
             private long dernierTemps = System.nanoTime();
@@ -115,6 +124,7 @@ public class JeuCamelot extends Application {
                         if(journal.collision(collision)){
                             System.out.println("collision");
                             journal.actionApresCollision();
+                            collision.actionApresCollision();
                         }
                     }
                 }
@@ -130,9 +140,7 @@ public class JeuCamelot extends Application {
                 Input.setKeyPressed(e.getCode(), true);
             }
         });
-        scene.setOnKeyReleased((e) -> {
-            Input.setKeyPressed(e.getCode(), false);
-        });
+        scene.setOnKeyReleased((e) -> Input.setKeyPressed(e.getCode(), false));
 
         return scene;
     }
@@ -143,6 +151,6 @@ public class JeuCamelot extends Application {
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }

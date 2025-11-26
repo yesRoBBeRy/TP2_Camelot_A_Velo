@@ -9,6 +9,7 @@ public class BoiteAuLettre extends ObjetDuJeu implements Collisions{
     protected Image boiteRouge;
     protected Image boiteVerte;
     protected Image boite;
+    private Maison refMaison;
 
     public BoiteAuLettre(Point2D velocite, Point2D position) {
         super(velocite, position);
@@ -40,6 +41,12 @@ public class BoiteAuLettre extends ObjetDuJeu implements Collisions{
 
     @Override
     public void actionApresCollision() {
+        if(refMaison.getEstAbonne()){
+            image = boiteVerte;
+        } else image = boiteRouge;
+    }
 
+    public void setRefMaison(Maison refMaison) {
+        this.refMaison = refMaison;
     }
 }

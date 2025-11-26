@@ -9,6 +9,8 @@ public class Fenetre extends ObjetDuJeu implements Collisions {
     private final Image fenetre;
     private final Image fenetreR;
     private final Image fenetreV;
+    private Maison refMaison;
+    private boolean brisee = false;
 
     public Fenetre(Point2D velocite, Point2D position ){
         super(velocite, position);
@@ -41,6 +43,15 @@ public class Fenetre extends ObjetDuJeu implements Collisions {
 
     @Override
     public void actionApresCollision() {
+        if(brisee) return;
+        boolean estAbonne = refMaison.getEstAbonne();
+        if(estAbonne){
+            image = fenetreR;
+        } else image = fenetreV;
+        brisee = true;
+    }
 
+    public void setRefMaison(Maison refMaison) {
+        this.refMaison = refMaison;
     }
 }

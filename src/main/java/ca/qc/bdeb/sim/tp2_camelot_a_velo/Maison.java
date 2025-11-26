@@ -1,15 +1,12 @@
 package ca.qc.bdeb.sim.tp2_camelot_a_velo;
 
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.Random;
 
 public class Maison extends ObjetDuJeu{
@@ -29,11 +26,17 @@ public class Maison extends ObjetDuJeu{
         this.position = new Point2D(positionX, JeuCamelot.hauteur - image.getHeight());
         this.boiteAuLettre = new BoiteAuLettre(Point2D.ZERO, new Point2D(this.position.getX() + 200, rand.nextDouble(.2, .7) * JeuCamelot.hauteur));
 
+        boiteAuLettre.setRefMaison(this);
 
         for (int i = 0; i < fenetres.length; i++) {
+            Fenetre f;
             if(i == 0) {
-                fenetres[i] = new Fenetre(Point2D.ZERO, new Point2D(this.position.getX() + 300, 50));
-            } else fenetres[i] = new Fenetre(Point2D.ZERO, new Point2D(this.position.getX() + 600, 50));
+                f = new Fenetre(Point2D.ZERO, new Point2D(this.position.getX() + 300, 50));
+            } else {
+                f = new Fenetre(Point2D.ZERO, new Point2D(this.position.getX() + 600, 50));
+            }
+            fenetres[i] = f;
+            f.setRefMaison(this);
         }
     }
 
@@ -80,5 +83,9 @@ public class Maison extends ObjetDuJeu{
 
     public BoiteAuLettre getBoiteAuLettre() {
         return boiteAuLettre;
+    }
+
+    public boolean getEstAbonne() {
+        return estAbonne;
     }
 }
