@@ -19,8 +19,9 @@ public class Partie {
     private Camera camera;
     private Camelot camelot;
     private static int NB_MAISONS = 12;
+    private int niveau = 1;
 
-    public Partie(int niveau) {
+    public Partie() {
         Random rand = new Random();
 
         //Créer les positions des maisons
@@ -150,6 +151,7 @@ public class Partie {
 
 
     }
+
     public String adressesToString(List<Integer> adresses) {
         StringBuilder sb = new StringBuilder();
         for (Integer adresse : adresses) {
@@ -158,4 +160,16 @@ public class Partie {
         return sb.toString();
     }
 
+    public boolean checkFin(){
+        double positionDeFin = 15600 + 1.5*JeuCamelot.largeur;
+        return camera.getPositionCamera().getX() + JeuCamelot.largeur > positionDeFin || camelot.getJournaux().isEmpty();
+    }
+
+    public Camelot getCamelot() {
+        return camelot;
+    }
+
+    public int getNiveau() {
+        return niveau;
+    }
 }
