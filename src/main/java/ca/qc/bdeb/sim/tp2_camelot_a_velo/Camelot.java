@@ -51,6 +51,7 @@ public class Camelot extends ObjetDuJeu {
         } else if (Input.isKeyPressed(KeyCode.RIGHT)) {
             acceleration = new Point2D(300, acceleration.getY()); //droite
         } else {
+
             int vitesseDeBase = 400;
             if (Math.abs(velocite.getX()) > vitesseDeBase) {
 
@@ -122,4 +123,7 @@ public class Camelot extends ObjetDuJeu {
         }
     }
 
+    public List<Journal> getJournaux() {
+        return journaux;
+    }
 }

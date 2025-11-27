@@ -58,8 +58,6 @@ public class Maison extends ObjetDuJeu{
         context.setFill(Color.YELLOW);
         context.setFont(Font.font(40));
 
-        //Centrer le texte
-        double centreX = image.getWidth() / 2 + coordoEcran.getX();
         double posX = coordoEcran.getX() + 40;
         double posY = coordoEcran.getY() + 50;
 
@@ -87,5 +85,9 @@ public class Maison extends ObjetDuJeu{
 
     public boolean getEstAbonne() {
         return estAbonne;
+    }
+
+    public int getAdresse() {
+        return adresse;
     }
 }
