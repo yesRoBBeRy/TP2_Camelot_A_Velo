@@ -79,6 +79,8 @@ public class Camelot extends ObjetDuJeu {
         }
         //MAJ
         super.updatePhysique(deltaTemps);
+        //limite de la vitesse en x pour éviter de s'arrêter ou reculer
+        velocite = new Point2D(Math.clamp(velocite.getX(), 200, 600), velocite.getY());
         //Gestion du double saut
         if (position.getY() + camelot1.getHeight() >= JeuCamelot.hauteur) {
             toucheLeSol = true;
