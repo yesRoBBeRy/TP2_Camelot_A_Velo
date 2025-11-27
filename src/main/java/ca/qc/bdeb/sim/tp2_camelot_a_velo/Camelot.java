@@ -5,15 +5,14 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Camelot extends ObjetDuJeu {
-    private LinkedList<Journal> journaux = new LinkedList<>();
+    private final List<Journal> journaux = new ArrayList<>();
     private final Image camelot1;
     private final Image camelot2;
     private int dernierTemps = 0;
-    private final int vitesseDeBase = 0; // ******remmettre a 400 lors des vrai tests******
     protected boolean toucheLeSol = true;
     private double dtDernierLancer = 0;
 
@@ -25,21 +24,21 @@ public class Camelot extends ObjetDuJeu {
                 velocite.getY()
         );
         this.camelot1 = new Image("camelot1.png");
-        image.setImage(camelot1);
         this.camelot2 = new Image("camelot2.png");
+        image = camelot1;
     }
 
     @Override
-    public void draw(GraphicsContext context) {
-        image.setX(position.getX());
-        image.setY(position.getY());
+    public void draw(GraphicsContext context, Camera camera) {
+        var coordoEcran = camera.coordoEcran(position);
+        context.drawImage(image, coordoEcran.getX(), coordoEcran.getY());
         int temps = (int) (Math.floor(JeuCamelot.tempsTotal * 4) % 2);
         if (temps != dernierTemps) {
             dernierTemps = temps;
             if (temps == 0) {
-                image.setImage(camelot1);
+                image = camelot1;
             } else {
-                image.setImage(camelot2);
+                image = camelot2;
             }
         }
     }
@@ -52,6 +51,8 @@ public class Camelot extends ObjetDuJeu {
         } else if (Input.isKeyPressed(KeyCode.RIGHT)) {
             acceleration = new Point2D(300, acceleration.getY()); //droite
         } else {
+
+            int vitesseDeBase = 400;
             if (Math.abs(velocite.getX()) > vitesseDeBase) {
 
                 // Si la vitesse en X est un minimum élevée, on décélère
@@ -70,7 +71,6 @@ public class Camelot extends ObjetDuJeu {
         if ((Input.isKeyPressed(KeyCode.SPACE) || Input.isKeyPressed(KeyCode.UP)) && toucheLeSol) {
             velocite = new Point2D(velocite.getX(), -500); //sauter
             toucheLeSol = false;
-            System.out.println("jump");
         }
 
         //Gravite
@@ -86,27 +86,44 @@ public class Camelot extends ObjetDuJeu {
         }
         //Contrainte rester dans la fenêtre
         position = new Point2D(
-                Math.clamp(position.getX(), 0, JeuCamelot.largeur - camelot1.getWidth()),
+                Math.max(0, position.getX()),
                 Math.clamp(position.getY(), 0, JeuCamelot.hauteur - camelot1.getHeight())
         );
-        System.out.println(position);
 
+        checkLancer(deltaTemps);
     }
+
     //Journaux transporté
     public void addJournaux(Journal journal) {
-        journaux.push(journal);
+        journaux.add(journal);
     }
 
-    public void removeJournal() {
+    public Journal removeJournal() {
         if (!journaux.isEmpty()) {
-            journaux.pop();
+            return journaux.removeFirst();
         }
 
+        return null;
     }
 
-    //if (Input.isKeyPressed(KeyCode.SHIFT) && ( Input.isKeyPressed(KeyCode.X) || Input.isKeyPressed(KeyCode.Z))) {
-    //
-    //
-    //
-    //        }
+    public void checkLancer(double deltaTemps) {
+        dtDernierLancer += deltaTemps;
+        double intervalleLancer = 0.5;
+
+        boolean xEnfonce = false;
+        boolean zEnfonce = false;
+        if (Input.isKeyPressed(KeyCode.X)) {
+            xEnfonce = true;
+        } else if (Input.isKeyPressed(KeyCode.Z)) {
+            zEnfonce = true;
+        }
+        if((xEnfonce || zEnfonce) && !journaux.isEmpty() && dtDernierLancer >= intervalleLancer) {
+            removeJournal().actionLancer(zEnfonce, xEnfonce);
+            dtDernierLancer = 0;
+        }
+    }
+
+    public List<Journal> getJournaux() {
+        return journaux;
+    }
 }
