@@ -15,14 +15,12 @@ public class Camelot extends ObjetDuJeu {
     private int dernierTemps = 0;
     protected boolean toucheLeSol = true;
     private double dtDernierLancer = 0;
+    private int argentTotal = 0;
 
     public Camelot(Point2D velocite, Point2D position) {
         super(velocite, position);
         // Empêche d'aller plus vite que 200 ou 600
-        this.velocite = new Point2D(
-                Math.clamp(velocite.getX(), 200, 600),
-                velocite.getY()
-        );
+        this.velocite = velocite;
         this.camelot1 = new Image("camelot1.png");
         this.camelot2 = new Image("camelot2.png");
         image = camelot1;
@@ -53,7 +51,7 @@ public class Camelot extends ObjetDuJeu {
         } else {
 
             int vitesseDeBase = 400;
-            if (Math.abs(velocite.getX()) > vitesseDeBase) {
+            if (Math.abs(velocite.getX()) > vitesseDeBase && !Input.isKeyPressed(KeyCode.LEFT) && !Input.isKeyPressed(KeyCode.RIGHT)) {
 
                 // Si la vitesse en X est un minimum élevée, on décélère
                 // (pas besoin de faire ça si le personnage est déja la vitesste initial)
@@ -79,8 +77,15 @@ public class Camelot extends ObjetDuJeu {
         }
         //MAJ
         super.updatePhysique(deltaTemps);
+
         //limite de la vitesse en x pour éviter de s'arrêter ou reculer
-        velocite = new Point2D(Math.clamp(velocite.getX(), 200, 600), velocite.getY());
+        if (velocite.getX() < 200|| velocite.getX() > 600) {
+            velocite = new Point2D(Math.clamp(velocite.getX(), 200, 600), velocite.getY());
+        }
+
+
+
+
         //Gestion du double saut
         if (position.getY() + camelot1.getHeight() >= JeuCamelot.hauteur) {
             toucheLeSol = true;
@@ -91,7 +96,6 @@ public class Camelot extends ObjetDuJeu {
                 Math.max(0, position.getX()),
                 Math.clamp(position.getY(), 0, JeuCamelot.hauteur - camelot1.getHeight())
         );
-
         checkLancer(deltaTemps);
     }
 
@@ -127,5 +131,12 @@ public class Camelot extends ObjetDuJeu {
 
     public List<Journal> getJournaux() {
         return journaux;
+    }
+
+    public void ajouterArgent(int paie){
+        argentTotal += paie;
+    }
+    public int getArgentTotal() {
+        return argentTotal;
     }
 }

@@ -14,8 +14,9 @@ public class Maison extends ObjetDuJeu{
     protected boolean estAbonne;
     protected Fenetre[] fenetres;
     protected BoiteAuLettre boiteAuLettre;
+    protected Camelot camelot;
 
-    public Maison(Point2D velocite, Point2D position, int positionX, int adresse) {
+    public Maison(Point2D velocite, Point2D position, int positionX, int adresse, Camelot camelot) {
         super(velocite, position);
         this.acceleration = Point2D.ZERO;
         Random rand = new Random();
@@ -25,8 +26,10 @@ public class Maison extends ObjetDuJeu{
         this.image = new Image("porte.png");
         this.position = new Point2D(positionX, JeuCamelot.hauteur - image.getHeight());
         this.boiteAuLettre = new BoiteAuLettre(Point2D.ZERO, new Point2D(this.position.getX() + 200, rand.nextDouble(.2, .7) * JeuCamelot.hauteur));
+        this.camelot = camelot;
 
         boiteAuLettre.setRefMaison(this);
+        boiteAuLettre.setRefCamelot(camelot);
 
         for (int i = 0; i < fenetres.length; i++) {
             Fenetre f;
@@ -37,18 +40,12 @@ public class Maison extends ObjetDuJeu{
             }
             fenetres[i] = f;
             f.setRefMaison(this);
+            f.setRefCamelot(camelot);
         }
     }
 
     @Override
     public void draw(GraphicsContext context, Camera camera) {
-
-        for(Fenetre f : fenetres) {
-            f.draw(context, camera);
-        }
-
-        boiteAuLettre.draw(context, camera);
-
         var coordoEcran = camera.coordoEcran(position);
 
         if(coordoEcran.getX() + image.getWidth() < 0 || coordoEcran.getX() > JeuCamelot.largeur) return;

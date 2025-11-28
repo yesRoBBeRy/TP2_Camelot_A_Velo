@@ -2,26 +2,27 @@ package ca.qc.bdeb.sim.tp2_camelot_a_velo;
 
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class Partie {
-    private List<ObjetDuJeu> objetsDuJeu = new ArrayList<>();
-    private List<Journal> journaux = new ArrayList<>();
-    private List<Collisions> collisionsStatiques = new ArrayList<>();
-    private List<ParticuleChargee> particulesChargees = new ArrayList<>();
-    private Camera camera;
-    private Camelot camelot;
-    private static int NB_MAISONS = 12;
-    private int niveau = 1;
+public class Partie implements DeboggageLogique {
+    private final List<ObjetDuJeu> OBJETS_DU_JEU = new ArrayList<>();
+    private final List<Journal> JOURNAUX = new ArrayList<>();
+    private final List<Collisions> COLLISIONS_STATIQUES = new ArrayList<>();
+    private final List<ParticuleChargee> PARTICULES_CHARGEES = new ArrayList<>();
+    private final Camera CAMERA;
+    private final Camelot CAMELOT;
+    private final int NB_MAISONS = 12;
+    private int niveau;
+    private final HUD hud;
 
-    public Partie() {
+
+    public Partie(int niveau) {
+        this.niveau = niveau;
+
         Random rand = new Random();
 
         //Créer les positions des maisons
@@ -31,6 +32,7 @@ public class Partie {
         for (int i = 1; i < NB_MAISONS; i++) {
             positionsPortes[i] = positionsPortes[i - 1] + intervalleX;
         }
+
         //Adresses
         int[] adresses = new int[NB_MAISONS];
         adresses[0] = rand.nextInt(100, 950);
@@ -39,78 +41,80 @@ public class Partie {
         }
 
         //Objets caméra et camelot
-        camera = new Camera(Point2D.ZERO);
-        camelot = new Camelot(new Point2D(100, 400), new Point2D(.2 * JeuCamelot.largeur, JeuCamelot.hauteur - 144));
+        CAMERA = new Camera(Point2D.ZERO);
+        CAMELOT = new Camelot(new Point2D(100, 400), new Point2D(.2 * JeuCamelot.largeur, JeuCamelot.hauteur - 144));
 
         //Création des maisons
         for (int i = 0; i < positionsPortes.length; i++) {
-            objetsDuJeu.add(new Maison(new Point2D(0, 0), new Point2D(0, 0), positionsPortes[i], adresses[i]));
+            OBJETS_DU_JEU.add(new Maison(new Point2D(0, 0), new Point2D(0, 0), positionsPortes[i], adresses[i], CAMELOT));
         }
-
-        //Création des objets journal et ajout aux listes
-        double masse = rand.nextDouble(2);
-        for (int i = 0; i < 12; i++) {
-            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, camelot);
-            objetsDuJeu.add(journal);
-            camelot.addJournaux(journal);
-            journaux.add(journal);
-        }
-
+        List<ObjetDuJeu> aAjouter = new ArrayList<>();
         //Ajout à la liste des collisions pour les objets
-        for (ObjetDuJeu obj : objetsDuJeu) {
+        for (ObjetDuJeu obj : OBJETS_DU_JEU) {
             if (obj instanceof Maison) {
                 Fenetre[] fenetre = ((Maison) obj).getFenetres();
                 BoiteAuLettre boite = ((Maison) obj).getBoiteAuLettre();
 
-                collisionsStatiques.addAll(Arrays.asList(fenetre));
-                collisionsStatiques.add(boite);
+                COLLISIONS_STATIQUES.addAll(Arrays.asList(fenetre));
+                COLLISIONS_STATIQUES.add(boite);
+
+                aAjouter.addAll(Arrays.asList(fenetre));
+                aAjouter.add(boite);
             }
         }
-        objetsDuJeu.add(camelot);
+        OBJETS_DU_JEU.addAll(aAjouter);
+        OBJETS_DU_JEU.add(CAMELOT);
         //Création des particules chargées
         int nbParticules = Math.min((niveau - 1) * 30, 400);
 
         for (int i = 0; i < nbParticules; i++) {
             ParticuleChargee p = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
-            particulesChargees.add(p);
-            objetsDuJeu.add(p);
+            PARTICULES_CHARGEES.add(p);
+            OBJETS_DU_JEU.add(p);
         }
+        //Création des objets journal et ajout aux listes
+        double masse = rand.nextDouble(2);
+        for (int i = 0; i < 12; i++) {
+            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
+            OBJETS_DU_JEU.add(journal);
+            CAMELOT.addJournaux(journal);
+            JOURNAUX.add(journal);
+        }
+
+        this.hud = new HUD(this);
 
     }
 
     public void update(double deltaTemps) {
-        for (var obj : objetsDuJeu) {
+        for (var obj : OBJETS_DU_JEU) {
             obj.updatePhysique(deltaTemps);
         }
         //Détection de collisions
-        for (Journal journal : journaux) {
+        for (Journal journal : JOURNAUX) {
             if (!journal.getPeutCollision()) continue;
 
-            for (Collisions collision : collisionsStatiques) {
+            for (Collisions collision : COLLISIONS_STATIQUES) {
                 if (journal.collision(collision)) {
-                    System.out.println("collision");
                     journal.actionApresCollision();
                     collision.actionApresCollision();
                     break;
                 }
             }
         }
-        camera.update(camelot);
+        CAMERA.update(CAMELOT);
     }
 
-    public void draw(GraphicsContext context) {
-        context.setFill(Color.BLACK);
-        context.fillRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
-
-        Mur.dessinerMur(context, camera);
-        for (ObjetDuJeu obj : objetsDuJeu) {
-            obj.draw(context, camera);
+    public void draw(GraphicsContext context){
+        Mur.dessinerMur(context, CAMERA);
+        for (ObjetDuJeu obj : OBJETS_DU_JEU) {
+            obj.draw(context, CAMERA);
         }
+        hud.drawHUD(context);
     }
 
     public List<Integer> getListeAdressesAbonnees() {
         List<Integer> adresses = new ArrayList<>();
-        for (ObjetDuJeu obj : objetsDuJeu) {
+        for (ObjetDuJeu obj : OBJETS_DU_JEU) {
             if (obj instanceof Maison) {
                 if (((Maison) obj).getEstAbonne()) {
                     adresses.add(((Maison) obj).getAdresse());
@@ -119,39 +123,6 @@ public class Partie {
         }
         return adresses;
     }
-    public void drawHUD(GraphicsContext context) {
-        double hauteurBarre = 50;
-        double espace = 20;
-
-        //Barre
-        context.setFill(Color.rgb(0, 0, 0, .5));
-        context.fillRect(0, 0, JeuCamelot.largeur, hauteurBarre);
-
-        //Icone du journal
-        Image iconeJournal = new Image("icone-journal.png");
-        context.drawImage(iconeJournal, 10, 8.5);
-
-        //Total de journaux
-        context.setFont(Font.font(35));
-        context.setFill(Color.GRAY);
-        context.fillText(String.valueOf(camelot.getJournaux().size()), espace + iconeJournal.getWidth(), 35);
-
-        Image iconeDollar = new Image("icone-dollar.png");
-        context.drawImage(iconeDollar, 2 * espace + 2 * iconeJournal.getWidth(), 12);
-
-        //TODO : Logique de l'argent!!!! + texte de l'argent total
-
-        Image iconeMaison = new Image("icone-maison.png");
-        context.drawImage(iconeMaison, 2 * espace + 2 * iconeJournal.getWidth() + 3 * iconeDollar.getWidth(), 8.5);
-
-        List<Integer> adresses = getListeAdressesAbonnees();
-        String adressesString = adressesToString(adresses);
-
-        context.fillText(adressesString, 3 * espace + 3 * iconeDollar.getWidth() + 2 * iconeJournal.getWidth() + iconeMaison.getWidth(), 35);
-
-
-    }
-
     public String adressesToString(List<Integer> adresses) {
         StringBuilder sb = new StringBuilder();
         for (Integer adresse : adresses) {
@@ -161,15 +132,58 @@ public class Partie {
     }
 
     public boolean checkFin(){
-        double positionDeFin = 15600 + 1.5*JeuCamelot.largeur;
-        return camera.getPositionCamera().getX() + JeuCamelot.largeur > positionDeFin || camelot.getJournaux().isEmpty();
+        if(!CAMELOT.getJournaux().isEmpty()) return false;
+
+        for(Journal journal : JOURNAUX){
+            boolean actif = journal.getPeutCollision() && journal.getPosition().getY() + journal.getIMG().getHeight() < JeuCamelot.hauteur;
+            if(actif) return false;
+        }
+        return true;
     }
 
-    public Camelot getCamelot() {
-        return camelot;
+    public void drawDebug(GraphicsContext context) {
+        for(ObjetDuJeu obj : OBJETS_DU_JEU) {
+            obj.deboggage(context, CAMERA);
+        }
+
+    }
+    public boolean checkNouveauNiveau(){
+        boolean atteintFin = CAMELOT.getPosition().getX() + JeuCamelot.hauteur > Mur.longueurNiveau;
+        if(!atteintFin) return false;
+        for(Journal journal : JOURNAUX){
+            if(!journal.isDejaLancer()) continue;
+            if(journal.getPeutCollision()) return false;
+        }
+        return true;
+    }
+
+
+
+    public Camelot getCAMELOT() {
+        return CAMELOT;
     }
 
     public int getNiveau() {
         return niveau;
+    }
+
+
+    public Camera getCAMERA() {
+        return CAMERA;
+    }
+
+    @Override
+    public void ajouterJournaux() {
+
+    }
+
+    @Override
+    public void renitialiserJournaux() {
+
+    }
+
+    @Override
+    public void prochainNiveau() {
+
     }
 }

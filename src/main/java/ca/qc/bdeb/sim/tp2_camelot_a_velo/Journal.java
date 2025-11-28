@@ -5,30 +5,35 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 
+import java.util.ArrayList;
+import java.util.List;
 
-public class Journal extends ObjetDuJeu implements Collisions {
-    private final Camelot camelot;
-    private final double masse;
-    private static final Point2D qtDeMouvementZ = new Point2D(900, -900);
-    private static final Point2D qtDeMouvementX = new Point2D(150, -1100);
+
+public class Journal extends ObjetDuJeu implements Collisions, Electromagnetique{
+    private final Camelot CAMELOT;
+    private final double MASSE;
+    private final Point2D QT_DE_MOUVEMENT_Y_INIT = new Point2D(900, -900);
+    private final Point2D QT_DE_MOUVEMENT_X_INIT = new Point2D(150, -1100);
     private boolean dejaLancer = false;
-    private final Image img;
+    private final Image IMG;
+    private final double CHARGE = 90;
+    private final double CONSTANTE_COULOMB = 90;
+    private final List<ParticuleChargee> PARTICULES_CHARGEES;
+    private boolean peutCollision = true;
 
     public boolean getPeutCollision() {
         return peutCollision;
     }
 
-    private boolean peutCollision = true;
-
-    public Journal(Point2D velocite, Point2D position, double masse, Camelot camelot) {
+    public Journal(Point2D velocite, Point2D position, double masse, Camelot camelot, List<ParticuleChargee> particules) {
         super(velocite, position);
-        this.masse = masse;
-        this.camelot = camelot;
-        this.img = new Image("journal.png", false);
-        this.image = img;
+        this.MASSE = masse;
+        this.CAMELOT = camelot;
+        this.IMG = new Image("journal.png", false);
+        this.image = IMG;
+        this.PARTICULES_CHARGEES = particules;
     }
 
     @Override
@@ -41,22 +46,22 @@ public class Journal extends ObjetDuJeu implements Collisions {
 
     @Override
     public void updatePhysique(double deltaTemps) {
+        if (!dejaLancer) {
+            position = CAMELOT.getPosition();
+            return;
+        }
+        acceleration = acceleration.add(calculerAccelChampElect());
+
         super.updatePhysique(deltaTemps);
         //module de la velocite maximum
         double max = 1500;
         if (velocite.magnitude() > max) {
             velocite = velocite.multiply(max / velocite.magnitude());
         }
-
-        if (!dejaLancer) {
-            position = camelot.getPosition();
-        }
-
-
     }
 
     public void actionLancer(boolean z, boolean x) {
-        image = img;
+        image = IMG;
         if (dejaLancer) {
             return;
         }
@@ -64,9 +69,9 @@ public class Journal extends ObjetDuJeu implements Collisions {
         Point2D qtDeMouvement;
 
         if (z) {
-            qtDeMouvement = qtDeMouvementZ;
+            qtDeMouvement = QT_DE_MOUVEMENT_Y_INIT;
         } else if (x) {
-            qtDeMouvement = qtDeMouvementX;
+            qtDeMouvement = QT_DE_MOUVEMENT_X_INIT;
         } else return;
 
         if (Input.isKeyPressed(KeyCode.SHIFT)) {
@@ -74,24 +79,16 @@ public class Journal extends ObjetDuJeu implements Collisions {
         }
 
         //vinitiale = ⃗vcamelot + pinitiale/m
-        velocite = camelot.getVelocite();
-        velocite = velocite.add(qtDeMouvement.multiply(1.0 / masse));
+        velocite = CAMELOT.getVelocite();
+        velocite = velocite.add(qtDeMouvement.multiply(1.0 / MASSE));
         dejaLancer = true;
 
     }
 
-    public boolean estDejaLancer() {
-        return dejaLancer;
-    }
-
-    public double getMasse() {
-        return masse;
-    }
 
 
-    public Point2D calculQtDeMouvementZInitial(Point2D velocite, double masse) {
-        return velocite.multiply(masse);
-    }
+
+
 
 
     @Override
@@ -114,4 +111,51 @@ public class Journal extends ObjetDuJeu implements Collisions {
         image = null;
         peutCollision = false;
     }
+
+    @Override
+    public Point2D calculerAccelChampElect() {
+
+        Point2D champtotal = champElectrique(PARTICULES_CHARGEES, position);
+        //Calcul du vecteur force électrique
+        Point2D forceElectrique = champTotal.multiply(CHARGE);
+
+        //Appliquer la deuxième loi de Newton pour trouver l'accélération produit par le champ
+        return forceElectrique.multiply(1/MASSE);
+    }
+
+    public Point2D champElectrique(List<ParticuleChargee> particules, Point2D position){
+        Point2D champTotal = Point2D.ZERO;
+
+        for (ParticuleChargee particule : particules) {
+            Point2D positionParticule = particule.getPosition();
+
+            //Calcul champ
+            Point2D vecteurDistance = position.subtract(positionParticule);
+
+            double rayon = vecteurDistance.magnitude();
+            rayon = Math.max(rayon, 1);
+
+            double champElectromagnetique = CONSTANTE_COULOMB * Math.abs(particule.getCHARGE()) / Math.pow(rayon, 2);
+
+            //Calcul du vecteur unitaire
+            Point2D vecteurUnitaire = vecteurDistance.normalize();
+
+            Point2D champActuel = vecteurUnitaire.multiply(champElectromagnetique);
+
+            //Somme des champs pour trouver champ total
+            champTotal = champTotal.add(champActuel);
+        }
+
+        return champTotal;
+    }
+
+    public Point2D getForceelectrique(ArrayList<ParticuleChargee> particules, Point2D position){
+        return champElectrique(particules, position);
+    }
+
+    public Image getIMG() {
+        return IMG;
+    }
+
+
 }

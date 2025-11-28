@@ -6,18 +6,19 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public class Fenetre extends ObjetDuJeu implements Collisions {
-    private final Image fenetre;
-    private final Image fenetreR;
-    private final Image fenetreV;
+    private final Image FENETRE;
+    private final Image FENETRE_ROUGE;
+    private final Image FENETRE_VERTE;
     private Maison refMaison;
     private boolean brisee = false;
+    private Camelot refCamelot;
 
-    public Fenetre(Point2D velocite, Point2D position ){
+    public Fenetre(Point2D velocite, Point2D position){
         super(velocite, position);
-        this.fenetreR = new Image ("fenetre-brisee-rouge.png");
-        this.fenetreV = new Image ("fenetre-brisee-vert.png");
-        this.fenetre = new Image("fenetre.png");
-        image = fenetre;
+        this.FENETRE_ROUGE = new Image ("fenetre-brisee-rouge.png");
+        this.FENETRE_VERTE = new Image ("fenetre-brisee-vert.png");
+        this.FENETRE = new Image("fenetre.png");
+        image = FENETRE;
         this.acceleration = Point2D.ZERO;
     }
 
@@ -33,7 +34,7 @@ public class Fenetre extends ObjetDuJeu implements Collisions {
 
     @Override
     public Rectangle2D getBounds() {
-        return new Rectangle2D(position.getX(), position.getY(), fenetre.getWidth(), fenetre.getHeight());
+        return new Rectangle2D(position.getX(), position.getY(), FENETRE.getWidth(), FENETRE.getHeight());
     }
 
     @Override
@@ -46,12 +47,17 @@ public class Fenetre extends ObjetDuJeu implements Collisions {
         if(brisee) return;
         boolean estAbonne = refMaison.getEstAbonne();
         if(estAbonne){
-            image = fenetreR;
-        } else image = fenetreV;
+            image = FENETRE_ROUGE;
+            refCamelot.ajouterArgent(-2);
+        } else {
+            image = FENETRE_VERTE;
+            refCamelot.ajouterArgent(2);
+        }
         brisee = true;
     }
 
     public void setRefMaison(Maison refMaison) {
         this.refMaison = refMaison;
     }
+    public void setRefCamelot(Camelot refCamelot) {this.refCamelot = refCamelot;}
 }

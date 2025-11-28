@@ -10,14 +10,16 @@ public class BoiteAuLettre extends ObjetDuJeu implements Collisions{
     protected Image boiteVerte;
     protected Image boite;
     private Maison refMaison;
+    private Camelot refCamelot;
 
     public BoiteAuLettre(Point2D velocite, Point2D position) {
         super(velocite, position);
 
         this.boiteRouge = new Image("boite-aux-lettres-rouge.png");
-        this.boiteVerte = new Image("/boite-aux-lettres-vert.png");
-        this.boite = new Image("/boite-aux-lettres.png");
+        this.boiteVerte = new Image("boite-aux-lettres-vert.png");
+        this.boite = new Image("boite-aux-lettres.png");
         image = boite;
+        acceleration = Point2D.ZERO;
     }
 
     @Override
@@ -43,10 +45,12 @@ public class BoiteAuLettre extends ObjetDuJeu implements Collisions{
     public void actionApresCollision() {
         if(refMaison.getEstAbonne()){
             image = boiteVerte;
+            refCamelot.ajouterArgent(1);
         } else image = boiteRouge;
     }
 
     public void setRefMaison(Maison refMaison) {
         this.refMaison = refMaison;
     }
+    public void setRefCamelot(Camelot refCamelot) {this.refCamelot = refCamelot;}
 }
