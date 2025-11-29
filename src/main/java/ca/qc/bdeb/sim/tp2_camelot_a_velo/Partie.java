@@ -20,6 +20,7 @@ public class Partie implements DeboggageLogique {
     private final HUD hud;
 
 
+
     public Partie(int niveau) {
         this.niveau = niveau;
 
@@ -141,12 +142,17 @@ public class Partie implements DeboggageLogique {
         return true;
     }
 
-    public void drawDebug(GraphicsContext context) {
+    public void drawDebug(GraphicsContext context, boolean debugCollision,boolean debugChamp) {
         for(ObjetDuJeu obj : OBJETS_DU_JEU) {
-            obj.deboggage(context, CAMERA);
+            if (debugCollision) {
+                obj.deboggage(context, CAMERA);
+            }
+            if (debugChamp && obj instanceof Journal) {
+                obj.deboggageChamp(context, CAMERA);
+            }
         }
-
     }
+
     public boolean checkNouveauNiveau(){
         boolean atteintFin = CAMELOT.getPosition().getX() + JeuCamelot.hauteur > Mur.longueurNiveau;
         if(!atteintFin) return false;

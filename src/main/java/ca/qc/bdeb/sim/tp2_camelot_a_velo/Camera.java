@@ -25,8 +25,13 @@ public class Camera{
     public Point2D getPositionCamera() {
         return positionCamera;
     }
+    public void setPositionCamera(Point2D positionCamera) {
+        this.positionCamera = positionCamera;
+    }
 
     public double getCibleX() {
         return cibleX;
     }
+
+
 }

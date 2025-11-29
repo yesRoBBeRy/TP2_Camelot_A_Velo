@@ -21,6 +21,7 @@ public class JeuCamelot extends Application {
     public static double largeur = 900;
     public static double hauteur = 580;
     private boolean debugCollision = false;
+    private boolean debugChamp = false;
     private AnimationTimer timerActuel = null;
 
     @Override
@@ -50,6 +51,8 @@ public class JeuCamelot extends Application {
             } else {
                 Input.setKeyPressed(e.getCode(), true);
             }
+
+
         });
         scene.setOnKeyReleased((e) -> Input.setKeyPressed(e.getCode(), false));
 
@@ -61,7 +64,13 @@ public class JeuCamelot extends Application {
             debugCollision = !debugCollision;
             Input.setKeyPressed(KeyCode.D, false);
         }
+        if (Input.isKeyPressed(KeyCode.F)) {
+            debugChamp = !debugChamp;
+            Input.setKeyPressed(KeyCode.F, false);
+        }
+
     }
+
 
     public AnimationTimer animer(Canvas canvas, Partie partie, Pane root) {
         GraphicsContext context = canvas.getGraphicsContext2D();
@@ -88,8 +97,13 @@ public class JeuCamelot extends Application {
                 partie.draw(context);
 
                 toucheDeboggage();
-                if (debugCollision) {
-                    partie.drawDebug(context);
+                if (debugCollision || debugChamp) {
+                    partie.drawDebug(context,debugCollision, debugChamp);
+                }
+
+
+                if (Input.isKeyPressed(KeyCode.L)) {
+                    transitions(root, partie, canvas);
                 }
 
                 dernierTemps = temps;

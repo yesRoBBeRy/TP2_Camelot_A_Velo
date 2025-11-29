@@ -3,7 +3,6 @@ package ca.qc.bdeb.sim.tp2_camelot_a_velo;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 
 public abstract class ObjetDuJeu implements DeboggageVisuel {
@@ -53,26 +52,10 @@ public abstract class ObjetDuJeu implements DeboggageVisuel {
 
 
     }
-    /*
-    public void dessinChamp(GraphicsContext contexteGraphique, Camera camera, Point2D coordoEcran, Journal journal) {
-        for (double x = 0; x < JeuCamelot.largeur; x += 50) {
-            for (double y = 0; y < JeuCamelot.hauteur; y += 50) { //TODO changer jeucamlot.hauteur par HAUTEUR_ECRAN
-                var positionMonde = new Point2D(x, y);
-                var positionEcran = coordoEcran;
-                // TODO: Seulement faire ça si la position (x, y) est visible dans l'écran
-                if (p)
-                Point2D force = journal.calculerChampElectromagnetique();
-                UtilitairesDessins.dessinerVecteurForce(
-                        positionEcran,
-                        force,
-                        contexteGraphique
-                );
-            }
-        }
 
+    public void deboggageChamp(GraphicsContext contexteGraphique, Camera camera ) {
     }
 
-     */
 
 
 }
