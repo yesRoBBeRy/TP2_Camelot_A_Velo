@@ -9,7 +9,7 @@ import java.util.Random;
 public class ParticuleChargee extends ObjetDuJeu{
     private final double RAYON = 10;
     private final Color COULEUR;
-    private final double CHARGE = 90;
+    private final double CHARGE = 900;
     public ParticuleChargee(Point2D velocite, Point2D position) {
         super(velocite, position);
 
@@ -19,7 +19,6 @@ public class ParticuleChargee extends ObjetDuJeu{
         this.velocite = Point2D.ZERO;
         this.acceleration = Point2D.ZERO;
         this.position = new Point2D(rand.nextDouble(Mur.longueurNiveau), rand.nextDouble(JeuCamelot.hauteur));
-        System.out.println(this.position);
     }
 
     @Override
@@ -33,7 +32,12 @@ public class ParticuleChargee extends ObjetDuJeu{
     }
 
 
+
     public double getCHARGE() {
         return CHARGE;
+    }
+
+    public void setPosition(Point2D position) {
+        this.position = position;
     }
 }

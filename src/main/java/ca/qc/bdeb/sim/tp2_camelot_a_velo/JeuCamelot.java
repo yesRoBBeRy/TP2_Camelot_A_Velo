@@ -22,6 +22,9 @@ public class JeuCamelot extends Application {
     public static double hauteur = 580;
     private boolean debugCollision = false;
     private boolean debugChamp = false;
+    private boolean kEnfonce = false;
+    private boolean qEnfonce = false;
+    private boolean iEnfonce = false;
     private AnimationTimer timerActuel = null;
 
     @Override
@@ -31,6 +34,7 @@ public class JeuCamelot extends Application {
         stage.setTitle("Camelot à vélo");
         stage.setScene(scene);
         stage.getIcons().add(new Image("journal.png"));
+        stage.setResizable(false);
         stage.show();
     }
 
@@ -59,7 +63,7 @@ public class JeuCamelot extends Application {
         return scene;
     }
 
-    public void toucheDeboggage() {
+    public void toucheDeboggage(Partie partie) {
         if (Input.isKeyPressed(KeyCode.D)) {
             debugCollision = !debugCollision;
             Input.setKeyPressed(KeyCode.D, false);
@@ -68,7 +72,26 @@ public class JeuCamelot extends Application {
             debugChamp = !debugChamp;
             Input.setKeyPressed(KeyCode.F, false);
         }
+        if(Input.isKeyPressed(KeyCode.Q)) {
+            if(!qEnfonce) {
+                partie.ajouterJournaux();
+                qEnfonce = true;
+            }
+        } else qEnfonce = false;
 
+        if(Input.isKeyPressed(KeyCode.K)) {
+            if(!kEnfonce) {
+                partie.renitialiserJournaux();
+                kEnfonce = true;
+            }
+        } else kEnfonce = false;
+
+        if(Input.isKeyPressed(KeyCode.I)) {
+            if(!iEnfonce) {
+                partie.deboggageParticules();
+                iEnfonce = true;
+            }
+        } else iEnfonce = false;
     }
 
 
@@ -96,15 +119,11 @@ public class JeuCamelot extends Application {
                 partie.update(deltaTemps);
                 partie.draw(context);
 
-                toucheDeboggage();
+                toucheDeboggage(partie);
                 if (debugCollision || debugChamp) {
                     partie.drawDebug(context,debugCollision, debugChamp);
                 }
-
-
-                if (Input.isKeyPressed(KeyCode.L)) {
-                    transitions(root, partie, canvas);
-                }
+                boolean deboggageSkipNiveau = Input.isKeyPressed(KeyCode.L); //skipNiveau
 
                 dernierTemps = temps;
 
@@ -114,9 +133,8 @@ public class JeuCamelot extends Application {
                     context.clearRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
                     finDePartie(root, partie, this);
                 }
-                if(partie.checkNouveauNiveau()){
-                    context.clearRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
-                    transitions(root, partie, canvas);
+                if(partie.checkNouveauNiveau(deboggageSkipNiveau)){
+                    transitions(root, partie, canvas, context);
                 }
 
             }
@@ -124,15 +142,18 @@ public class JeuCamelot extends Application {
     }
 
     public void premierePartie(Pane root, Canvas canvas) {
-        Partie partie = new Partie(0);
-        transitions(root, partie, canvas);
+        Partie partie = new Partie(0, 0);
+        transitions(root, partie, canvas, canvas.getGraphicsContext2D());
     }
 
-    public void transitions(Pane root, Partie partie,Canvas canvas) {
+    public void transitions(Pane root, Partie partie,Canvas canvas, GraphicsContext context) {
+        context.clearRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
         if(timerActuel != null) {
             timerActuel.stop();
         }
         int niveau = partie.getNiveau() + 1;
+
+        int nouveauNbJournaux = partie.getNbJournaux() + 12;
         Text texte = new Text("Niveau " + niveau);
         texte.setFill(Color.GREEN);
 
@@ -145,7 +166,7 @@ public class JeuCamelot extends Application {
 
         transition.setOnFinished(event -> {
             root.getChildren().remove(texte);
-            Partie prochainePartie = new Partie(niveau);
+            Partie prochainePartie = new Partie(niveau, nouveauNbJournaux);
             tempsTotal = 0;
             timerActuel = animer(canvas, prochainePartie, root);
             timerActuel.start();
@@ -173,14 +194,14 @@ public class JeuCamelot extends Application {
         transition.setOnFinished(event -> {
             root.getChildren().removeAll(texte1, texte2);
 
-            Partie nouvellePartie = new Partie(1);
+            Partie nouvellePartie = new Partie(1, 12);
 
             Canvas canvas = (Canvas) root.getChildren().getFirst();
 
             tempsTotal = 0;
 
-            AnimationTimer nouveauTimer = animer(canvas, nouvellePartie, root);
-            nouveauTimer.start();
+            timerActuel = animer(canvas, nouvellePartie, root);
+            timerActuel.start();
         });
         transition.play();
     }

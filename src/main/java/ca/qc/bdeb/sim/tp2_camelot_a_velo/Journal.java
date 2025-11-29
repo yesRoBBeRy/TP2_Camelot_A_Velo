@@ -19,7 +19,7 @@ public class Journal extends ObjetDuJeu implements Collisions, Electromagnetique
     private final Point2D QT_DE_MOUVEMENT_X_INIT = new Point2D(150, -1100);
     private boolean dejaLancer = false;
     private final Image IMG;
-    private final double CHARGE = 90;
+    private final double CHARGE = 900;
     private final double CONSTANTE_COULOMB = 90;
     private final List<ParticuleChargee> PARTICULES_CHARGEES;
     private boolean peutCollision = true;
@@ -31,6 +31,7 @@ public class Journal extends ObjetDuJeu implements Collisions, Electromagnetique
     public Journal(Point2D velocite, Point2D position, double masse, Camelot camelot, List<ParticuleChargee> particules) {
         super(velocite, position);
         this.MASSE = masse;
+        System.out.println(masse);
         this.CAMELOT = camelot;
         this.IMG = new Image("journal.png", false);
         this.image = IMG;
@@ -54,11 +55,13 @@ public class Journal extends ObjetDuJeu implements Collisions, Electromagnetique
         acceleration = acceleration.add(calculerAccelChampElect());
 
         super.updatePhysique(deltaTemps);
+        acceleration = new Point2D(0, 1500);
         //module de la velocite maximum
         double max = 1500;
-        if (velocite.magnitude() > max) {
+        if (dejaLancer && image != null && velocite.magnitude() > max) {
             velocite = velocite.multiply(max / velocite.magnitude());
         }
+
     }
 
     public void actionLancer(boolean z, boolean x) {
@@ -78,11 +81,12 @@ public class Journal extends ObjetDuJeu implements Collisions, Electromagnetique
         if (Input.isKeyPressed(KeyCode.SHIFT)) {
             qtDeMouvement = qtDeMouvement.multiply(1.5);
         }
-
+        System.out.println(velocite.magnitude());
         //vinitiale = ⃗vcamelot + pinitiale/m
         velocite = CAMELOT.getVelocite();
         velocite = velocite.add(qtDeMouvement.multiply(1.0 / MASSE));
         dejaLancer = true;
+        System.out.println(velocite.magnitude());
 
     }
 
@@ -151,28 +155,46 @@ public class Journal extends ObjetDuJeu implements Collisions, Electromagnetique
 
     public void deboggageChamp(GraphicsContext gc, Camera camera) {
         for (double x = 0; x < JeuCamelot.largeur + camera.getPositionCamera().getX(); x += 50) {
+            double ecranX = x - camera.getPositionCamera().getX();
+            if(ecranX < -50 || ecranX > JeuCamelot.largeur) continue;
             for (double y = 0; y < JeuCamelot.hauteur + camera.getPositionCamera().getY(); y += 50) {
 
                 var positionMonde = new Point2D(x, y);
                 var positionEcran = camera.coordoEcran(positionMonde);
+                /*
                 if (estVisibleAEcran(positionEcran)) {
                     Point2D force = champElectrique(PARTICULES_CHARGEES, positionMonde);
                     UtilitairesDessins.dessinerVecteurForce(positionEcran, force, gc);
                 }
+
+                 */
+                Point2D force = champElectrique(PARTICULES_CHARGEES, positionMonde);
+                UtilitairesDessins.dessinerVecteurForce(positionEcran, force, gc);
             }
         }
 
     }
 
     private boolean estVisibleAEcran(Point2D positionEcran) {
+        return positionEcran.getX() < 0 || positionEcran.getX() > JeuCamelot.largeur;
+        /*
         return positionEcran.getX() >= 0 && positionEcran.getX() <= JeuCamelot.largeur
                 && positionEcran.getY() >= 0 && positionEcran.getY() <= JeuCamelot.hauteur;
+
+
+                for(int i = 0; i <= margeNiveau; i += (int) LARGEUR_BRIQUE) {
+            double ecranX = (double)i - camera.getPositionCamera().getX();
+            if(ecranX < -LARGEUR_BRIQUE || ecranX > LARGEUR_ECRAN) continue;
+
+            for(int j = 0; j <= HAUTEUR_ECRAN; j += (int) HAUTEUR_BRIQUE) {
+                context.drawImage(IMAGE, ecranX, j);
+            }
+        }
+         */
     }
 
 
     public Image getIMG() {
         return IMG;
     }
-
-
 }

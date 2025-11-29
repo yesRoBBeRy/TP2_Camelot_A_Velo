@@ -5,6 +5,4 @@ public interface DeboggageLogique {
     void ajouterJournaux();
 
     void renitialiserJournaux();
-
-    void prochainNiveau();
 }

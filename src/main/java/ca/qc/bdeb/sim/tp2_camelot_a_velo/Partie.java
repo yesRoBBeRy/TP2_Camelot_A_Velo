@@ -18,11 +18,13 @@ public class Partie implements DeboggageLogique {
     private final int NB_MAISONS = 12;
     private int niveau;
     private final HUD hud;
+    private int nbJournaux;
+    private double masse;
 
 
-
-    public Partie(int niveau) {
+    public Partie(int niveau, int nbJournaux) {
         this.niveau = niveau;
+        this.nbJournaux = nbJournaux;
 
         Random rand = new Random();
 
@@ -74,7 +76,7 @@ public class Partie implements DeboggageLogique {
             OBJETS_DU_JEU.add(p);
         }
         //Création des objets journal et ajout aux listes
-        double masse = rand.nextDouble(2);
+        this.masse = rand.nextDouble(1, 2);
         for (int i = 0; i < 12; i++) {
             Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
             OBJETS_DU_JEU.add(journal);
@@ -153,8 +155,10 @@ public class Partie implements DeboggageLogique {
         }
     }
 
-    public boolean checkNouveauNiveau(){
+    public boolean checkNouveauNiveau(boolean deboggageSkip){
+        if(deboggageSkip) return true;
         boolean atteintFin = CAMELOT.getPosition().getX() + JeuCamelot.hauteur > Mur.longueurNiveau;
+
         if(!atteintFin) return false;
         for(Journal journal : JOURNAUX){
             if(!journal.isDejaLancer()) continue;
@@ -178,18 +182,42 @@ public class Partie implements DeboggageLogique {
         return CAMERA;
     }
 
+    public void deboggageParticules(){
+        System.out.println("dddddddddddddddddddddddddddddddddddddd");
+        OBJETS_DU_JEU.removeIf(obj -> obj instanceof ParticuleChargee);
+        PARTICULES_CHARGEES.clear();
+        for(int x = 0; x <= Mur.margeNiveau; x += 50){
+            ParticuleChargee p1 = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
+            p1.setPosition(new Point2D(x, 10));
+            ParticuleChargee p2 = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
+            p2.setPosition(new Point2D(x, JeuCamelot.hauteur - 10));
+            PARTICULES_CHARGEES.add(p1);
+            PARTICULES_CHARGEES.add(p2);
+            OBJETS_DU_JEU.add(p1);
+            OBJETS_DU_JEU.add(p2);
+        }
+    }
+
+
     @Override
     public void ajouterJournaux() {
-
+        for(int i = 0; i < 10; i++) {
+            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
+            OBJETS_DU_JEU.add(journal);
+            CAMELOT.addJournaux(journal);
+            JOURNAUX.add(journal);
+        }
     }
 
     @Override
     public void renitialiserJournaux() {
-
+        JOURNAUX.clear();
+        CAMELOT.clearJournaux();
+        OBJETS_DU_JEU.removeIf(obj -> obj instanceof Journal);
     }
 
-    @Override
-    public void prochainNiveau() {
-
+    public int getNbJournaux() {
+        return nbJournaux;
     }
+
 }

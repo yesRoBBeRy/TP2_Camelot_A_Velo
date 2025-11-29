@@ -139,4 +139,5 @@ public class Camelot extends ObjetDuJeu {
     public int getArgentTotal() {
         return argentTotal;
     }
+    public void clearJournaux() {journaux.clear();}
 }
