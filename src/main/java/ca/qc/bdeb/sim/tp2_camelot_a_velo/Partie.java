@@ -66,6 +66,9 @@ public class Partie implements DeboggageLogique {
         this.hud = new HUD(this);
     }
 
+    /**
+     * Crée et ajoute les journaux aux listes internes et à Camelot.
+     */
     private void creerJournaux(int nbJournaux) {
         for (int i = 0; i < nbJournaux; i++) {
             Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
@@ -75,6 +78,10 @@ public class Partie implements DeboggageLogique {
         }
     }
 
+    /**
+     * Crée les particules chargées du niveau.
+     * Leur nombre augmente avec le niveau.
+     */
     private void creerParticules(int niveau) {
         int nbParticules = Math.min((niveau - 1) * 30, 400);
 
@@ -85,13 +92,17 @@ public class Partie implements DeboggageLogique {
         }
     }
 
+    /**
+     * Crée les maisons ainsi que leurs objets associés (fenêtres, boîte aux lettres),
+     * puis les ajoute aux systèmes de collisions et d’affichage.
+     */
     private void creerMaisons(int[] positionsPortes, int[] adresses) {
         //Création des maisons
         for (int i = 0; i < positionsPortes.length; i++) {
             OBJETS_DU_JEU.add(new Maison(new Point2D(0, 0), new Point2D(0, 0), positionsPortes[i], adresses[i], CAMELOT));
         }
         List<ObjetDuJeu> aAjouter = new ArrayList<>();
-        //Ajout à la liste des collisions pour les objets
+        // Ajout des objets internes aux maisons (fenêtres, boîte aux lettres)
         for (ObjetDuJeu obj : OBJETS_DU_JEU) {
             if (obj instanceof Maison) {
                 Fenetre[] fenetre = ((Maison) obj).getFenetres();
@@ -109,6 +120,9 @@ public class Partie implements DeboggageLogique {
         OBJETS_DU_JEU.add(CAMELOT);
     }
 
+    /**
+     * Génère la liste ordonnée des adresses des maisons.
+     */
     private int[] getAdresses(int NB_MAISONS, Random rand) {
         int[] adresses = new int[NB_MAISONS];
         adresses[0] = rand.nextInt(100, 950);
@@ -118,6 +132,9 @@ public class Partie implements DeboggageLogique {
         return adresses;
     }
 
+    /**
+     * Génère les positions X des portes des maisons.
+     */
     private int[] getPositionsPortes(int NB_MAISONS, int intervalleX) {
         int[] positionsPortes = new int[NB_MAISONS];
         positionsPortes[0] = intervalleX;
