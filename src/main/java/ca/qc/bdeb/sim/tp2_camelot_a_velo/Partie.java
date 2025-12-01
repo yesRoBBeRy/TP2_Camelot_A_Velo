@@ -25,7 +25,6 @@ public class Partie implements DeboggageLogique {
     private final Camelot CAMELOT;
     private final int niveau;
     private final HUD hud;
-    private final int nbJournaux;
     private final double masse;
 
     /**
@@ -37,7 +36,6 @@ public class Partie implements DeboggageLogique {
      */
     public Partie(int niveau, int nbJournaux, int argentTotal) {
         this.niveau = niveau;
-        this.nbJournaux = nbJournaux;
 
         Random rand = new Random();
         //Objets caméra et camelot
@@ -294,7 +292,7 @@ public class Partie implements DeboggageLogique {
     }
 
     public int getNbJournaux() {
-        return nbJournaux;
+        return CAMELOT.getJournaux().size();
     }
     public Camelot getCAMELOT() {
         return CAMELOT;
