@@ -8,6 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Classe qui s'occupe de gérer une partie
+ * Responsabilités :
+ * - création des objets du jeu
+ * - appel aux méthodes de mise à jour physique et dessinage
+ * - appel aux méthodes de déboggage
+ * - vérification de la fin ou du changement de niveau
+ */
 public class Partie implements DeboggageLogique {
     private final List<ObjetDuJeu> OBJETS_DU_JEU = new ArrayList<>();
     private final List<Journal> JOURNAUX = new ArrayList<>();
@@ -15,38 +23,69 @@ public class Partie implements DeboggageLogique {
     private final List<ParticuleChargee> PARTICULES_CHARGEES = new ArrayList<>();
     private final Camera CAMERA;
     private final Camelot CAMELOT;
-    private final int NB_MAISONS = 12;
-    private int niveau;
+    private final int niveau;
     private final HUD hud;
-    private int nbJournaux;
-    private double masse;
+    private final int nbJournaux;
+    private final double masse;
 
-
-    public Partie(int niveau, int nbJournaux) {
+    /**
+     * Initialisation des objets du jeu
+     *
+     * @param niveau      niveau actuel
+     * @param nbJournaux  nombre de journaux actuel
+     * @param argentTotal nombre d'argent actuel
+     */
+    public Partie(int niveau, int nbJournaux, int argentTotal) {
         this.niveau = niveau;
         this.nbJournaux = nbJournaux;
 
         Random rand = new Random();
-
-        //Créer les positions des maisons
-        int intervalleX = 1300;
-        int[] positionsPortes = new int[NB_MAISONS];
-        positionsPortes[0] = intervalleX;
-        for (int i = 1; i < NB_MAISONS; i++) {
-            positionsPortes[i] = positionsPortes[i - 1] + intervalleX;
-        }
-
-        //Adresses
-        int[] adresses = new int[NB_MAISONS];
-        adresses[0] = rand.nextInt(100, 950);
-        for (int i = 1; i < NB_MAISONS; i++) {
-            adresses[i] = adresses[i - 1] + 2;
-        }
-
         //Objets caméra et camelot
         CAMERA = new Camera(Point2D.ZERO);
-        CAMELOT = new Camelot(new Point2D(100, 400), new Point2D(.2 * JeuCamelot.largeur, JeuCamelot.hauteur - 144));
+        CAMELOT = new Camelot(new Point2D(100, 400), new Point2D(.2 * JeuCamelot.largeur, JeuCamelot.hauteur - 144), argentTotal);
+        
+        //Créer les positions des maisons
+        int intervalleX = 1300;
+        int NB_MAISONS = 12;
+        int[] positionsPortes = getPositionsPortes(NB_MAISONS, intervalleX);
 
+        //Adresses
+        int[] adresses = getAdresses(NB_MAISONS, rand);
+
+        //Créer les maisons
+        creerMaisons(positionsPortes, adresses);
+
+        //Création des particules chargées
+        creerParticules(niveau);
+
+        //Création des objets de type Journal et ajout aux listes
+        this.masse = rand.nextDouble(1, 2);
+        creerJournaux(nbJournaux);
+
+        //Objet HUD qui s'occupe des informations sur l'écran
+        this.hud = new HUD(this);
+    }
+
+    private void creerJournaux(int nbJournaux) {
+        for (int i = 0; i < nbJournaux; i++) {
+            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
+            OBJETS_DU_JEU.add(journal);
+            CAMELOT.addJournaux(journal);
+            JOURNAUX.add(journal);
+        }
+    }
+
+    private void creerParticules(int niveau) {
+        int nbParticules = Math.min((niveau - 1) * 30, 400);
+
+        for (int i = 0; i < nbParticules; i++) {
+            ParticuleChargee p = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
+            PARTICULES_CHARGEES.add(p);
+            OBJETS_DU_JEU.add(p);
+        }
+    }
+
+    private void creerMaisons(int[] positionsPortes, int[] adresses) {
         //Création des maisons
         for (int i = 0; i < positionsPortes.length; i++) {
             OBJETS_DU_JEU.add(new Maison(new Point2D(0, 0), new Point2D(0, 0), positionsPortes[i], adresses[i], CAMELOT));
@@ -60,34 +99,39 @@ public class Partie implements DeboggageLogique {
 
                 COLLISIONS_STATIQUES.addAll(Arrays.asList(fenetre));
                 COLLISIONS_STATIQUES.add(boite);
-
+                
+                //Liste temporaire, car on ne peut pas modifier une liste quand on itère dans celle-ci
                 aAjouter.addAll(Arrays.asList(fenetre));
                 aAjouter.add(boite);
             }
         }
         OBJETS_DU_JEU.addAll(aAjouter);
         OBJETS_DU_JEU.add(CAMELOT);
-        //Création des particules chargées
-        int nbParticules = Math.min((niveau - 1) * 30, 400);
-
-        for (int i = 0; i < nbParticules; i++) {
-            ParticuleChargee p = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
-            PARTICULES_CHARGEES.add(p);
-            OBJETS_DU_JEU.add(p);
-        }
-        //Création des objets journal et ajout aux listes
-        this.masse = rand.nextDouble(1, 2);
-        for (int i = 0; i < 12; i++) {
-            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
-            OBJETS_DU_JEU.add(journal);
-            CAMELOT.addJournaux(journal);
-            JOURNAUX.add(journal);
-        }
-
-        this.hud = new HUD(this);
-
     }
 
+    private int[] getAdresses(int NB_MAISONS, Random rand) {
+        int[] adresses = new int[NB_MAISONS];
+        adresses[0] = rand.nextInt(100, 950);
+        for (int i = 1; i < NB_MAISONS; i++) {
+            adresses[i] = adresses[i - 1] + 2;
+        }
+        return adresses;
+    }
+
+    private int[] getPositionsPortes(int NB_MAISONS, int intervalleX) {
+        int[] positionsPortes = new int[NB_MAISONS];
+        positionsPortes[0] = intervalleX;
+        for (int i = 1; i < NB_MAISONS; i++) {
+            positionsPortes[i] = positionsPortes[i - 1] + intervalleX;
+        }
+        return positionsPortes;
+    }
+
+    /**
+     * Mise à jour de la physique
+     *
+     * @param deltaTemps : double
+     */
     public void update(double deltaTemps) {
         for (var obj : OBJETS_DU_JEU) {
             obj.updatePhysique(deltaTemps);
@@ -107,7 +151,12 @@ public class Partie implements DeboggageLogique {
         CAMERA.update(CAMELOT);
     }
 
-    public void draw(GraphicsContext context){
+    /**
+     * Dessinage des objets sur le canvas
+     *
+     * @param context GraphicsContext
+     */
+    public void draw(GraphicsContext context) {
         Mur.dessinerMur(context, CAMERA);
         for (ObjetDuJeu obj : OBJETS_DU_JEU) {
             obj.draw(context, CAMERA);
@@ -115,6 +164,9 @@ public class Partie implements DeboggageLogique {
         hud.drawHUD(context);
     }
 
+    /**
+     * @return la liste des adresses abonnées
+     */
     public List<Integer> getListeAdressesAbonnees() {
         List<Integer> adresses = new ArrayList<>();
         for (ObjetDuJeu obj : OBJETS_DU_JEU) {
@@ -126,6 +178,11 @@ public class Partie implements DeboggageLogique {
         }
         return adresses;
     }
+
+    /**
+     * @param adresses : List des adresses
+     * @return un String pour le HUD
+     */
     public String adressesToString(List<Integer> adresses) {
         StringBuilder sb = new StringBuilder();
         for (Integer adresse : adresses) {
@@ -134,18 +191,31 @@ public class Partie implements DeboggageLogique {
         return sb.toString();
     }
 
-    public boolean checkFin(){
-        if(!CAMELOT.getJournaux().isEmpty()) return false;
+    /**
+     * Vérifie si la fin du niveau est atteinte selon les journaux en mouvement, la longueur du niveau
+     * ainsi que le nombre de journaux restants.
+     *
+     * @return boolean
+     */
+    public boolean checkFin() {
+        if (!CAMELOT.getJournaux().isEmpty()) return false;
 
-        for(Journal journal : JOURNAUX){
+        for (Journal journal : JOURNAUX) {
             boolean actif = journal.getPeutCollision() && journal.getPosition().getY() + journal.getIMG().getHeight() < JeuCamelot.hauteur;
-            if(actif) return false;
+            if (actif) return false;
         }
         return true;
     }
 
-    public void drawDebug(GraphicsContext context, boolean debugCollision,boolean debugChamp) {
-        for(ObjetDuJeu obj : OBJETS_DU_JEU) {
+    /**
+     * Dessine les deboggages selon ce qui est enfoncé
+     *
+     * @param context        GraphicsContext
+     * @param debugCollision boolean
+     * @param debugChamp     boolean
+     */
+    public void drawDebug(GraphicsContext context, boolean debugCollision, boolean debugChamp) {
+        for (ObjetDuJeu obj : OBJETS_DU_JEU) {
             if (debugCollision) {
                 obj.deboggage(context, CAMERA);
             }
@@ -155,38 +225,28 @@ public class Partie implements DeboggageLogique {
         }
     }
 
-    public boolean checkNouveauNiveau(boolean deboggageSkip){
-        if(deboggageSkip) return true;
-        boolean atteintFin = CAMELOT.getPosition().getX() + JeuCamelot.hauteur > Mur.longueurNiveau;
-
-        if(!atteintFin) return false;
-        for(Journal journal : JOURNAUX){
-            if(!journal.isDejaLancer()) continue;
-            if(journal.getPeutCollision()) return false;
-        }
-        return true;
+    /**
+     * Vérifie les conditions pour commencer un nouveau niveau
+     *
+     * @param deboggageSkip : Pour le deboggage
+     * @return boolean
+     */
+    public boolean checkNouveauNiveau(boolean deboggageSkip) {
+        if (deboggageSkip) return true;
+        return CAMELOT.getPosition().getX() + JeuCamelot.largeur > Mur.longueurNiveau;
     }
 
-
-
-    public Camelot getCAMELOT() {
-        return CAMELOT;
-    }
-
-    public int getNiveau() {
-        return niveau;
-    }
-
-
-    public Camera getCAMERA() {
-        return CAMERA;
-    }
-
-    public void deboggageParticules(){
-        System.out.println("dddddddddddddddddddddddddddddddddddddd");
+    /**
+     * Modifie les particules présentes pour mettre les particules en haut et en bas de l'écran
+     *
+     * @param particuleDebug : Activé/Désactivé
+     */
+    public void deboggageParticules(boolean particuleDebug) {
         OBJETS_DU_JEU.removeIf(obj -> obj instanceof ParticuleChargee);
         PARTICULES_CHARGEES.clear();
-        for(int x = 0; x <= Mur.margeNiveau; x += 50){
+        if (!particuleDebug) return;
+
+        for (int x = 0; x <= Mur.margeNiveau; x += 50) {
             ParticuleChargee p1 = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
             p1.setPosition(new Point2D(x, 10));
             ParticuleChargee p2 = new ParticuleChargee(Point2D.ZERO, Point2D.ZERO);
@@ -198,17 +258,17 @@ public class Partie implements DeboggageLogique {
         }
     }
 
-
+    /**
+     * Ajoute 10 journaux
+     */
     @Override
     public void ajouterJournaux() {
-        for(int i = 0; i < 10; i++) {
-            Journal journal = new Journal(new Point2D(0, 0), new Point2D(0, 0), masse, CAMELOT, PARTICULES_CHARGEES);
-            OBJETS_DU_JEU.add(journal);
-            CAMELOT.addJournaux(journal);
-            JOURNAUX.add(journal);
-        }
+        creerJournaux(10);
     }
 
+    /**
+     * Rénitialise les journaux, ce qui termine la partie présente
+     */
     @Override
     public void renitialiserJournaux() {
         JOURNAUX.clear();
@@ -219,5 +279,11 @@ public class Partie implements DeboggageLogique {
     public int getNbJournaux() {
         return nbJournaux;
     }
+    public Camelot getCAMELOT() {
+        return CAMELOT;
+    }
 
+    public int getNiveau() {
+        return niveau;
+    }
 }

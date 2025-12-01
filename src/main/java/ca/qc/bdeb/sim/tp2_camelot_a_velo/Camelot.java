@@ -8,28 +8,51 @@ import javafx.scene.input.KeyCode;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Représente le joueur "Camelot" dans le jeu.
+ * Cette classe gère la physique, le dessin à l'écran, la gestion des journaux transportés,
+ * ainsi que les interactions clavier pour le déplacement et le lancer de journaux.
+ * Elle hérite de {@link ObjetDuJeu} pour bénéficier des mises à jour de position et de vélocité.
+ */
+
 public class Camelot extends ObjetDuJeu {
-    private final List<Journal> journaux = new ArrayList<>();
+    private final List<Journal> journaux = new ArrayList<>();//Liste des journaux que Camelot transporte actuellement
     private final Image camelot1;
     private final Image camelot2;
     private int dernierTemps = 0;
     protected boolean toucheLeSol = true;
-    private double dtDernierLancer = 0;
-    private int argentTotal = 0;
+    private double dtDernierLancer = 0;//Temps écoulé depuis le dernier lancer de journal
+    private int argentTotal;
 
-    public Camelot(Point2D velocite, Point2D position) {
+    /**
+     * Constructeur du joueur Camelot.
+     *
+     * @param velocite    Vélocité initiale du personnage
+     * @param position    Position initiale du personnage
+     * @param argentTotal Argent de départ du joueur
+     */
+    public Camelot(Point2D velocite, Point2D position, int argentTotal) {
         super(velocite, position);
         // Empêche d'aller plus vite que 200 ou 600
         this.velocite = velocite;
         this.camelot1 = new Image("camelot1.png");
         this.camelot2 = new Image("camelot2.png");
         image = camelot1;
+        this.argentTotal = argentTotal;
     }
 
+    /**
+     * Dessine Camelot à l'écran en fonction de sa position et de la caméra.
+     * Alterne entre deux images pour créer une animation simple.
+     *
+     * @param context Contexte graphique du Canvas
+     * @param camera  Caméra pour convertir la position monde en coordonnées écran
+     */
     @Override
     public void draw(GraphicsContext context, Camera camera) {
         var coordoEcran = camera.coordoEcran(position);
         context.drawImage(image, coordoEcran.getX(), coordoEcran.getY());
+        // Animation pour alterner entre les deux images toutes les 0,25 secondes
         int temps = (int) (Math.floor(JeuCamelot.tempsTotal * 4) % 2);
         if (temps != dernierTemps) {
             dernierTemps = temps;
@@ -40,10 +63,28 @@ public class Camelot extends ObjetDuJeu {
             }
         }
     }
+    /**
+     * Met à jour la physique de Camelot selon le temps écoulé et les entrées clavier.
+     * Gère le mouvement horizontal, le saut, la gravité, la limitation de vitesse,
+     * le double saut et le confinement dans la fenêtre de jeu.
+     *
+     * @param deltaTemps Temps écoulé depuis la dernière mise à jour (en secondes)
+     */
 
     @Override
     public void updatePhysique(double deltaTemps) {
-        //Déplacement en X
+        //Déplacement horizontale
+        gererDeplacementHorizontal();
+        //Déplacement verticale (saut)
+        gererDeplacementVertical(deltaTemps);
+        //MAJ
+        super.updatePhysique(deltaTemps);
+        appliquerContrainteDeJeu();
+        //Vérifie si un jouranl peut être lancé
+        checkLancer(deltaTemps);
+    }
+
+    private void gererDeplacementHorizontal(){
         if (Input.isKeyPressed(KeyCode.LEFT)) {
             acceleration = new Point2D(-300, acceleration.getY()); //gauche
         } else if (Input.isKeyPressed(KeyCode.RIGHT)) {
@@ -65,45 +106,52 @@ public class Camelot extends ObjetDuJeu {
             }
 
         }
-        //Déplacement en Y
+    }
+
+    private void gererDeplacementVertical(double deltaTemps){
         if ((Input.isKeyPressed(KeyCode.SPACE) || Input.isKeyPressed(KeyCode.UP)) && toucheLeSol) {
             velocite = new Point2D(velocite.getX(), -500); //sauter
             toucheLeSol = false;
         }
-
         //Gravite
         if (!toucheLeSol) {
             velocite = new Point2D(velocite.getX(), velocite.getY() + acceleration.getY() * deltaTemps);
         }
-        //MAJ
-        super.updatePhysique(deltaTemps);
+    }
 
+    private void appliquerContrainteDeJeu(){
+        final double VITESSE_MIN_X = 200;
+        final double VITESSE_MAX_X = 600;
         //limite de la vitesse en x pour éviter de s'arrêter ou reculer
-        if (velocite.getX() < 200|| velocite.getX() > 600) {
-            velocite = new Point2D(Math.clamp(velocite.getX(), 200, 600), velocite.getY());
+        if (velocite.getX() < VITESSE_MIN_X|| velocite.getX() > VITESSE_MAX_X) {
+            velocite = new Point2D(Math.clamp(velocite.getX(), VITESSE_MIN_X, VITESSE_MAX_X), velocite.getY());
         }
-
-
-
-
         //Gestion du double saut
         if (position.getY() + camelot1.getHeight() >= JeuCamelot.hauteur) {
             toucheLeSol = true;
             velocite = new Point2D(velocite.getX(), 0);
         }
-        //Contrainte rester dans la fenêtre
+        //Contrainte de rester dans la fenêtre du jeu
         position = new Point2D(
                 Math.max(0, position.getX()),
                 Math.clamp(position.getY(), 0, JeuCamelot.hauteur - camelot1.getHeight())
         );
-        checkLancer(deltaTemps);
     }
 
-    //Journaux transporté
+    /**
+     * Ajoute un journal à la liste des journaux transportés.
+     *
+     * @param journal Journal à ajouter
+     */
     public void addJournaux(Journal journal) {
         journaux.add(journal);
     }
 
+    /**
+     * Retire et retourne le premier journal de la liste, ou null si aucun journal.
+     *
+     * @return Journal retiré ou null
+     */
     public Journal removeJournal() {
         if (!journaux.isEmpty()) {
             return journaux.removeFirst();
@@ -112,6 +160,12 @@ public class Camelot extends ObjetDuJeu {
         return null;
     }
 
+    /**
+     * Vérifie si un lancer de journal peut être effectué selon les touches appuyées et
+     * le temps écoulé depuis le dernier lancer.
+     *
+     * @param deltaTemps Temps écoulé depuis la dernière mise à jour
+     */
     public void checkLancer(double deltaTemps) {
         dtDernierLancer += deltaTemps;
         double intervalleLancer = 0.5;
@@ -133,6 +187,7 @@ public class Camelot extends ObjetDuJeu {
         return journaux;
     }
 
+    //Ajoute de l'argent au total
     public void ajouterArgent(int paie){
         argentTotal += paie;
     }

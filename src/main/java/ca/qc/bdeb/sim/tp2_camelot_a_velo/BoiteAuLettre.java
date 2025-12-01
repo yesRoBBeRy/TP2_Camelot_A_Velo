@@ -25,7 +25,7 @@ public class BoiteAuLettre extends ObjetDuJeu implements Collisions{
     @Override
     public void draw(GraphicsContext context, Camera camera) {
         var coordoEcran = camera.coordoEcran(position);
-
+        //On imprime rien si la position n'est pas dans la page
         if(coordoEcran.getX() + image.getWidth() < 0 || coordoEcran.getX() > JeuCamelot.largeur) return;
         context.drawImage(image, coordoEcran.getX(), coordoEcran.getY());
     }

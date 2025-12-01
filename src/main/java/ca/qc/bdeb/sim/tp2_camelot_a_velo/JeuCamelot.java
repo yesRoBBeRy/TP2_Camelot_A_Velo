@@ -25,6 +25,7 @@ public class JeuCamelot extends Application {
     private boolean kEnfonce = false;
     private boolean qEnfonce = false;
     private boolean iEnfonce = false;
+    private boolean particulesDebug = false;
     private AnimationTimer timerActuel = null;
 
     @Override
@@ -38,6 +39,12 @@ public class JeuCamelot extends Application {
         stage.show();
     }
 
+    /**
+     * Création de la scene de jeu
+     * - On met le fond noir
+     * - On appelle premierePartie() pour débuter le jeu
+     * @return Scene
+     */
     private Scene sceneJeu() {
         //Structure
         Pane root = new Pane();
@@ -63,6 +70,11 @@ public class JeuCamelot extends Application {
         return scene;
     }
 
+    /**
+     * Méthode qui s'occupe de vérifier si les touches de débogage sont enfoncées
+     * et ainsi appeler leurs méthodes respectives
+     * @param partie : Partie actuelle
+     */
     public void toucheDeboggage(Partie partie) {
         if (Input.isKeyPressed(KeyCode.D)) {
             debugCollision = !debugCollision;
@@ -72,29 +84,37 @@ public class JeuCamelot extends Application {
             debugChamp = !debugChamp;
             Input.setKeyPressed(KeyCode.F, false);
         }
-        if(Input.isKeyPressed(KeyCode.Q)) {
-            if(!qEnfonce) {
+        if (Input.isKeyPressed(KeyCode.Q)) {
+            if (!qEnfonce) {
                 partie.ajouterJournaux();
                 qEnfonce = true;
             }
         } else qEnfonce = false;
 
-        if(Input.isKeyPressed(KeyCode.K)) {
-            if(!kEnfonce) {
+        if (Input.isKeyPressed(KeyCode.K)) {
+            if (!kEnfonce) {
                 partie.renitialiserJournaux();
                 kEnfonce = true;
             }
         } else kEnfonce = false;
 
-        if(Input.isKeyPressed(KeyCode.I)) {
-            if(!iEnfonce) {
-                partie.deboggageParticules();
+        if (Input.isKeyPressed(KeyCode.I)) {
+            if (!iEnfonce) {
+                particulesDebug = !particulesDebug;
+                partie.deboggageParticules(particulesDebug);
                 iEnfonce = true;
             }
         } else iEnfonce = false;
     }
 
-
+    /**
+     * Création de l'AnimationTimer
+     *
+     * @param canvas : Canvas
+     * @param partie : Partie actuelle
+     * @param root   : Pane
+     * @return AnimationTimer
+     */
     public AnimationTimer animer(Canvas canvas, Partie partie, Pane root) {
         GraphicsContext context = canvas.getGraphicsContext2D();
 
@@ -104,6 +124,7 @@ public class JeuCamelot extends Application {
 
             @Override
             public void handle(long temps) {
+                //Pour les bugs de premiere image
                 if (premiereImage) {
                     dernierTemps = temps;
                     premiereImage = false;
@@ -116,44 +137,68 @@ public class JeuCamelot extends Application {
                 context.setFill(Color.BLACK);
                 context.fillRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
 
+                //Mises à jour
                 partie.update(deltaTemps);
                 partie.draw(context);
 
+                //Deboggage
                 toucheDeboggage(partie);
                 if (debugCollision || debugChamp) {
-                    partie.drawDebug(context,debugCollision, debugChamp);
+                    partie.drawDebug(context, debugCollision, debugChamp);
                 }
                 boolean deboggageSkipNiveau = Input.isKeyPressed(KeyCode.L); //skipNiveau
 
                 dernierTemps = temps;
 
+                //Vérification de fin du niveau
                 if (partie.checkFin()) {
-                    PauseTransition pause = new PauseTransition(Duration.seconds(2));
-                    pause.play();
                     context.clearRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
-                    finDePartie(root, partie, this);
+                    finDePartie(root, partie);
                 }
-                if(partie.checkNouveauNiveau(deboggageSkipNiveau)){
-                    transitions(root, partie, canvas, context);
+                if (partie.checkNouveauNiveau(deboggageSkipNiveau)) {
+                    transitions(root, partie, canvas);
                 }
 
             }
         };
     }
 
+    /**
+     * Initialise la première partie du jeu
+     * <p>
+     * Utilise une partie transitoire pour faciliter l'utilisation du reste du code
+     *
+     * @param root   Le Pane où sera dessiné les objets
+     * @param canvas : Canvas
+     */
     public void premierePartie(Pane root, Canvas canvas) {
-        Partie partie = new Partie(0, 0);
-        transitions(root, partie, canvas, canvas.getGraphicsContext2D());
+        //Partie seulement utilisée pour avoir une partie transitoire, elle est jamais utilisée
+        Partie partie = new Partie(0, 0, 0);
+        transitions(root, partie, canvas);
     }
 
-    public void transitions(Pane root, Partie partie,Canvas canvas, GraphicsContext context) {
+    /**
+     * Méthode qui s'occupe de la transition entre les différents niveaux.
+     *
+     * @param root   : Pane
+     * @param partie : Ancienne partie
+     * @param canvas : Canvas actuel
+     */
+    public void transitions(Pane root, Partie partie, Canvas canvas) {
+        GraphicsContext context = canvas.getGraphicsContext2D();
         context.clearRect(0, 0, JeuCamelot.largeur, JeuCamelot.hauteur);
-        if(timerActuel != null) {
+        //Arrêt de l'AnimationTimerActuel
+        if (timerActuel != null) {
             timerActuel.stop();
         }
+        //On ajoute 1 au niveau précédent
         int niveau = partie.getNiveau() + 1;
 
+        //On ajoute 12 aux anciens journaux
         int nouveauNbJournaux = partie.getNbJournaux() + 12;
+
+        //On garde l'argent déjà collecté
+        int argentTotal = partie.getCAMELOT().getArgentTotal();
         Text texte = new Text("Niveau " + niveau);
         texte.setFill(Color.GREEN);
 
@@ -166,7 +211,7 @@ public class JeuCamelot extends Application {
 
         transition.setOnFinished(event -> {
             root.getChildren().remove(texte);
-            Partie prochainePartie = new Partie(niveau, nouveauNbJournaux);
+            Partie prochainePartie = new Partie(niveau, nouveauNbJournaux, argentTotal);
             tempsTotal = 0;
             timerActuel = animer(canvas, prochainePartie, root);
             timerActuel.start();
@@ -174,14 +219,23 @@ public class JeuCamelot extends Application {
         transition.play();
     }
 
-    public void finDePartie(Pane root, Partie partie, AnimationTimer timer) {
-        timer.stop();
+    /**
+     * Méthode qui s'occupe de montrer les information lorsque la partie est perdue
+     * et appelle ensuite creerPauseFinDePartie.
+     *
+     * @param root   : Pane
+     * @param partie : Dernière partie jouée
+     */
+    public void finDePartie(Pane root, Partie partie) {
+        timerActuel.stop();
 
-        int argentCollecte = partie.getCAMELOT().getArgentTotal();
-
+        //Texte quand on perd la partie
         Text texte1 = new Text("Rupture de stock!");
         texte1.setFill(Color.RED);
         positionnerTexte(texte1, root);
+
+        //Texte qui montre l'argent collecté
+        int argentCollecte = partie.getCAMELOT().getArgentTotal();
 
         Text texte2 = new Text("Argent collecté : " + argentCollecte + "$");
         texte2.setFill(Color.GREEN);
@@ -190,22 +244,37 @@ public class JeuCamelot extends Application {
 
         root.getChildren().addAll(texte1, texte2);
 
-        PauseTransition transition = new PauseTransition(Duration.seconds(6));
-        transition.setOnFinished(event -> {
-            root.getChildren().removeAll(texte1, texte2);
-
-            Partie nouvellePartie = new Partie(1, 12);
-
-            Canvas canvas = (Canvas) root.getChildren().getFirst();
-
-            tempsTotal = 0;
-
-            timerActuel = animer(canvas, nouvellePartie, root);
-            timerActuel.start();
-        });
+        PauseTransition transition = creerPauseFinDePartie(root, texte1, texte2);
         transition.play();
     }
 
+    /**
+     * Création de la PauseTransition de 3 seconde quand on perd la partie.
+     *
+     * @param root   : Pane
+     * @param texte1 : Texte de rupture de stock
+     * @param texte2 : Texte de l'argent collecté
+     * @return PauseTransition
+     */
+    private PauseTransition creerPauseFinDePartie(Pane root, Text texte1, Text texte2) {
+        PauseTransition transition = new PauseTransition(Duration.seconds(3));
+        transition.setOnFinished(event -> {
+            root.getChildren().removeAll(texte1, texte2);
+            Canvas canvas = (Canvas) root.getChildren().getFirst();
+            tempsTotal = 0;
+            //On recommence le jeu
+            premierePartie(root, canvas);
+        });
+        return transition;
+    }
+
+    /**
+     * Méthode qui positionne le texte de transition
+     * Pour éviter la redondance dans les méthodes, voici ce que nous avons créé
+     *
+     * @param texte1 : Texte à placer
+     * @param root   : Pane
+     */
     private void positionnerTexte(Text texte1, Pane root) {
         texte1.setFont(Font.font(70));
 
